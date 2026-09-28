@@ -1,0 +1,85 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/users",
+  "operation_id": "CreateUser",
+  "title": "Create User",
+  "description": "Creates a user with the specified details.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/users/create-user/",
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "description": "Optional header for making the request idempotent",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "uid": {
+        "type": "string",
+        "example": "xyz123",
+        "description": "The application-specific ID you've given to the user",
+        "maxLength": 256
+      },
+      "display_name": {
+        "type": "string",
+        "example": "Daniel Falko",
+        "description": "The nice-looking name for this user",
+        "maxLength": 256
+      },
+      "email": {
+        "type": "string",
+        "example": "daniel.falko@example.com",
+        "description": "The email address associated with this user",
+        "maxLength": 128
+      },
+      "properties": {
+        "type": "object",
+        "example": {
+          "pricing_plan": "paid",
+          "popup_help": true,
+          "total_spent": 14.55
+        },
+        "description": "Properties that provide additional information about your user.\n - Up to 500 unique properties are allowed.\n - Property names must be a sequence of alphanumeric characters A-Z, a-z, or 0-9 and underscores (\"_\").\n - Property names must start with an alphabetic character (A-Z or a-z).\n - The maximum property name length is 512 characters.\n - Property values may also contain nested objects. Properties within nested objects must still conform to the naming requirements. For nested objects, the property name including the dotted concatenation of all its parent properties must still be under the length limit of 512 characters.\n - Property values have a maximum size of 8192 bytes. If the value for the property is larger than this limit, the property will be rejected.",
+        "maxProperties": 500
+      },
+      "schema": {
+        "description": "Optional schema declaration, to define the structure of the data and override Fullstory's default type inference.",
+        "x-fullstory-doc-example-ignore": true,
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "object",
+            "description": "A mapping of field names to their corresponding types."
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "example": "987654321",
+        "description": "The Fullstory assigned user ID"
+      }
+    },
+    "description": "Server response for creating a user",
+    "required": [
+      "id"
+    ],
+    "example": {
+      "id": "987654321"
+    }
+  }
+}

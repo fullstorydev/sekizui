@@ -1,0 +1,173 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/operations/v1",
+  "operation_id": "ListOperations",
+  "title": "List Operation",
+  "description": "Returns a paginated list of all operations, ongoing and completed.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/operations/list-operations/",
+  "parameters": [
+    {
+      "name": "paginationToken",
+      "description": "Optional pagination token for retrieving further results from a known state.\nList params should not change between consecutive paginated requests (limit is an exception).",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "Optional limit to the number of operations returned. If not specified,\nthe max (100) operations are returned.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    {
+      "name": "state",
+      "description": "If set, filters the returned operations to include only those in the given state.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "COMPLETED",
+          "FAILED"
+        ],
+        "default": "UNKNOWN"
+      }
+    },
+    {
+      "name": "type",
+      "description": "If set, filters the returned operations to include only those with the given type.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "enum": [
+          "DELETE_USER",
+          "SEARCH_EXPORT",
+          "DELETE_SESSION",
+          "DELETE_SEGMENT_SESSIONS",
+          "DELETE_SEGMENT_USERS"
+        ],
+        "default": "UNSET"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "nextPaginationToken": "fbvcfghgfrw",
+      "operations": [
+        {
+          "id": "YnVsa3k6NTc0OTU2MzMzMTcwNjg4MA==",
+          "type": "DELETE_USER",
+          "details": null,
+          "results": null,
+          "state": "PENDING",
+          "errorDetails": "",
+          "createdAt": "2018-04-19T22:40:52.174736Z",
+          "finishedAt": "2018-04-19T22:40:54.473657Z",
+          "estimatePctComplete": 10
+        }
+      ]
+    },
+    "properties": {
+      "operations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "example": {
+            "id": "abcdefg1234",
+            "type": "SEARCH_EXPORT",
+            "details": null,
+            "results": {
+              "expires": "2020-09-29T10:11:12.345Z",
+              "searchExportId": "YKDYR5ye_GgeKNkI16aQlEb9j7D7Vbwtv9ILHbugP7s"
+            },
+            "state": "COMPLETED",
+            "errorDetails": "",
+            "createdAt": "2020-09-22T22:40:52.174736Z",
+            "finishedAt": "2020-09-22T23:30:54.473657Z",
+            "estimatePctComplete": 100
+          },
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The id of the operation."
+            },
+            "type": {
+              "description": "The type of the operation.",
+              "type": "string",
+              "enum": [
+                "DELETE_USER",
+                "SEARCH_EXPORT",
+                "DELETE_SESSION",
+                "DELETE_SEGMENT_SESSIONS",
+                "DELETE_SEGMENT_USERS"
+              ],
+              "default": "UNSET"
+            },
+            "details": {
+              "type": "object",
+              "description": "May contain additional information about the operation. See [Operation Results and Details](../operation-results-and-details) for operation specific information."
+            },
+            "results": {
+              "type": "object",
+              "description": "If the operation produces results and the operation completed successfully, this will contain information relevant to the type of operation. See [Operation Results and Details](../operation-results-and-details) for operation specific information."
+            },
+            "state": {
+              "description": "The current state of the operation.",
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "COMPLETED",
+                "FAILED"
+              ],
+              "default": "UNKNOWN"
+            },
+            "errorDetails": {
+              "type": "string",
+              "description": "If the state is `FAILED`, this will contain a message describing why the operation failed."
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "UTC RFC 3339 timestamp for when the operation was scheduled."
+            },
+            "finishedAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "UTC RFC 3339 timestamp for when the operation finished, either successfully or with an error."
+            },
+            "estimatePctComplete": {
+              "type": "integer",
+              "format": "int64",
+              "description": "A number from 0 to 100 that indicates an estimation of how much progress has been made on a pending  operation."
+            },
+            "step": {
+              "type": "string",
+              "description": "Indicator of the operation's current step which can provide non-quantitative information about an operation's progress."
+            }
+          },
+          "title": "Response sent as JSON in body"
+        },
+        "description": "The list of matching operations up to the limit.\nIf empty, no operations matched."
+      },
+      "nextPaginationToken": {
+        "type": "string",
+        "description": "If present, this pagination token can be supplied in a subsequent request to get\nthe next batch of results.\nIf not present, there are no further results."
+      }
+    },
+    "title": "Response sent as JSON in body"
+  }
+}

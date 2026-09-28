@@ -1,0 +1,85 @@
+# Fullstory's `refines:` rules (D299) — AVAILABLE BY NAME, IMPOSED ONLY BY A
+# DEPLOYMENT'S `refinements:` (D297 ruling 2). A release that adds a rule here
+# changes nothing any agent receives until somebody imposes it.
+#
+# Each reads the rows of ONE Generate Context result (`fullstory.session_event.v1`,
+# the last <=200 events of a session) and writes ONE key of
+# `fullstory.session_context.v1`, declared in schemas.yaml. The vocabulary is
+# Sekizui's and closed (D300): `where`, one pairing level, list/count/first.
+#
+# THREE ARE ORG-INDEPENDENT AND ONE IS A TEMPLATE (D298). A built-in cannot know
+# which page is Acme's sign-in, so `fullstory.login` refuses to be imposed
+# without its two prefixes (D299, D301).
+#
+# `page_url` survives only on `navigate` rows (it is free text, D279), so "which
+# page" is always the nearest preceding navigate — the same pairing operator as
+# everything else, not a special case (D300).
+
+# Frustration signals by kind and page (D298). mouse-thrash, the three click
+# frustrations, and console/network errors, each counted under the page it
+# happened on.
+- name: fullstory.frustration
+  refines: fullstory.session_event.v1
+  into: fullstory.session_context.v1
+  key: frustration
+  where:
+    - {path: event_type, op: in, value: [rage-click, dead-click, error-click, mouse-thrash, console-error, network-error]}
+  preceded_by:
+    as: page
+    where:
+      - {path: event_type, op: eq, value: navigate}
+  count: {by: [event_type, page.page_url], limit: 50}
+
+# The page path: every navigate in order, with its dwell — the seconds until
+# the next navigate. The last page has no follower, so it carries no dwell.
+- name: fullstory.path
+  refines: fullstory.session_event.v1
+  into: fullstory.session_context.v1
+  key: path
+  where:
+    - {path: event_type, op: eq, value: navigate}
+  followed_by:
+    as: next
+    where:
+      - {path: event_type, op: eq, value: navigate}
+  list: {carry: [event_time, page_url, next.duration_s], limit: 200}
+
+# Errors, each with the interaction before it (D298). error-click is listed as
+# an error AND can be the cause of one (the maintainer, D300). The mobile failed login of
+# D300's live read — dead-click, then network-error 157ms later — pairs here.
+- name: fullstory.errors
+  refines: fullstory.session_event.v1
+  into: fullstory.session_context.v1
+  key: errors
+  where:
+    - {path: event_type, op: in, value: [exception, console-error, network-error, error-click]}
+  preceded_by:
+    as: cause
+    within_s: 5
+    where:
+      - {path: event_type, op: in, value: [click, dead-click, rage-click, error-click]}
+  list: {carry: [event_time, event_type, cause.event_type, cause.event_time, cause.duration_s], limit: 50}
+
+# The LOGIN TEMPLATE (D301): the sign-in page, then the success page within 60
+# seconds by default, and the nearest following match skips an intermediate
+# redirect page. SIXTY, NOT D301's FIFTEEN (D317): the window runs from ARRIVING
+# on the sign-in page, so it holds the person reading and typing as well as the
+# redirects — the test org's real web login (/checkout#login → #billing) took 26.5s.
+# Holds on web (a URL) and mobile (a screen name) alike, because both survive on
+# navigate; `success_prefix` is what keeps an iOS system overlay (the keyboard's
+# UIEditingOverlayViewController arrives as a navigate) from reading as success.
+- name: fullstory.login
+  params: {signin_prefix: required, success_prefix: required, within_s: 60}
+  refines: fullstory.session_event.v1
+  into: fullstory.session_context.v1
+  key: login
+  where:
+    - {path: event_type, op: eq, value: navigate}
+    - {path: page_url, op: prefix, value: {param: signin_prefix}}
+  followed_by:
+    as: landed
+    within_s: {param: within_s}
+    where:
+      - {path: event_type, op: eq, value: navigate}
+      - {path: page_url, op: prefix, value: {param: success_prefix}}
+  first: {carry: [event_time, landed.event_time, landed.duration_s]}

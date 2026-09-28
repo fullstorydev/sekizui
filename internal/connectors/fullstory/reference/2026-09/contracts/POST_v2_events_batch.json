@@ -1,0 +1,475 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/events/batch",
+  "operation_id": "CreateBatchEventsImportJob",
+  "title": "Create Events Batch Import",
+  "description": "Creates a batch events import job with the given list of event information.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/events/create-batch-events-import-job/",
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "description": "Optional header for marking the request to be idempotent",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "requests": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "x-fullstory-doc-example-ignore": true,
+              "type": "object",
+              "properties": {
+                "uid": {
+                  "type": "string",
+                  "example": "xyz123",
+                  "description": "The application-specific ID you've given to the user.",
+                  "maxLength": 256
+                },
+                "id": {
+                  "type": "string",
+                  "example": "123456789",
+                  "description": "The Fullstory-assigned user ID. This value is returned in a `POST /v2/users` (create user) response."
+                }
+              },
+              "description": "The user identifier.\n\nIf `session.id` is provided, the `session.id` is enough to identify a session for which to create the event, and `user` will not be accepted.\n\nIf `session.use_most_recent` is set to `true`, one and only one`user` field is required."
+            },
+            "session": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "123456789:1298251231",
+                  "description": "The Fullstory generated identifier for the session to associate the event with. If this session has recorded too much activity, the request is rejected with `code: session_page_limit_exceeded`; see the `session` field description."
+                },
+                "use_most_recent": {
+                  "type": "boolean",
+                  "example": true,
+                  "description": "Associate events with the most recent session captured from the user. Defaults to `false`.`\n\nIf set to `true`, a `user` is required. The user must have a session within the past 30 minutes, otherwise the events will be created for the user without a session.\n\nIt is recommended to use `session.id` instead, when creating events for a specific session.\n\nIf the matched session has recorded too much activity, Fullstory starts a new session for the event instead of continuing to add to it; no error is returned in this case.",
+                  "x-fullstory-doc-example-ignore": true
+                },
+                "uid": {
+                  "type": "string",
+                  "example": "xyz123",
+                  "description": "The application-specific ID you've given to the session.",
+                  "maxLength": 256
+                }
+              },
+              "description": "The session identifier. If `use_most_recent` is specified to `true` then the most recent session within 30 minutes will be used. If no recent session is found or `use_most_recent` is `false` or not specified, then a session with the provided `id` would be used. If that session is not found or the `id` is not provided, then the events will be created without a session.\n\nFullstory groups a session's events into a bounded number of internal \"pages\" as they're recorded. A session that has recorded an unusually large volume of activity can exhaust that internal limit; when that happens, `id`/`uid` targeting is rejected with `code: session_page_limit_exceeded` (send later events to a new session instead), while `use_most_recent` instead starts a new session for you automatically, with no error returned."
+            },
+            "context": {
+              "type": "object",
+              "properties": {
+                "browser": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "example": "https://app.example.com"
+                    },
+                    "user_agent": {
+                      "type": "string",
+                      "example": "Example_User_Agent"
+                    },
+                    "initial_referrer": {
+                      "type": "string",
+                      "example": "https://referrer.example.com"
+                    }
+                  },
+                  "description": "The browser context in which the events are attached to."
+                },
+                "mobile": {
+                  "x-fullstory-doc-example-ignore": true,
+                  "type": "object",
+                  "properties": {
+                    "app_id": {
+                      "type": "string",
+                      "example": "com.company.example"
+                    },
+                    "app_version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "app_name": {
+                      "type": "string",
+                      "example": "example app"
+                    },
+                    "build_variant": {
+                      "type": "string"
+                    }
+                  },
+                  "description": "The mobile context in which the events are attached to."
+                },
+                "device": {
+                  "x-fullstory-doc-example-ignore": true,
+                  "type": "object",
+                  "properties": {
+                    "manufacturer": {
+                      "type": "string",
+                      "example": "Device Manufacturer"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "screen_width": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "screen_height": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "viewport_width": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "viewport_height": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "description": "The device context in which the events are attached to."
+                },
+                "location": {
+                  "x-fullstory-doc-example-ignore": true,
+                  "type": "object",
+                  "properties": {
+                    "country": {
+                      "type": "string",
+                      "example": "US",
+                      "description": "ISO 3166-1 alpha-2 standard country code."
+                    },
+                    "region": {
+                      "type": "string",
+                      "example": "GA",
+                      "description": "ISO-3166-2 standard region code."
+                    },
+                    "city": {
+                      "type": "string",
+                      "example": "Atlanta",
+                      "description": "Name of the city."
+                    },
+                    "latitude": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "longitude": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "ip_address": {
+                      "type": "string",
+                      "example": "127.0.0.1"
+                    }
+                  },
+                  "description": "The location context in which the events are attached to."
+                }
+              },
+              "description": "The context in which the events are attached to."
+            },
+            "name": {
+              "type": "string",
+              "example": "Support Ticket",
+              "description": "The event's name."
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "ISO 8601 string",
+              "example": "2022-03-15T14:23:23Z",
+              "description": "Optional. The event's timestamp represented in ISO 8601 format. If not provided, the current Fullstory server time will be used. It is recommended to always set the timestamp."
+            },
+            "properties": {
+              "type": "object",
+              "example": {
+                "id": 424242,
+                "priority": "Normal",
+                "source": "Email",
+                "title": "Account locked out"
+              },
+              "description": "Optional. The custom event's payload."
+            },
+            "schema": {
+              "description": "Optional. Schema declaration, to define the structure of the data, the schema will override Fullstory's default type inference.",
+              "x-fullstory-doc-example-ignore": true,
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "A mapping of field names to their corresponding types."
+                }
+              }
+            },
+            "page_properties": {
+              "type": "object",
+              "example": {
+                "page_type": "checkout",
+                "store_id": "store-123"
+              },
+              "description": "Optional. Page-scoped properties that get denormalized onto all events on the page, enabling search and filtering by page-level metadata."
+            },
+            "page_properties_schema": {
+              "description": "Optional. Schema declaration for page_properties, to define the structure of the data. The schema will override Fullstory's default type inference.",
+              "x-fullstory-doc-example-ignore": true,
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "A mapping of field names to their corresponding types."
+                }
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "description": "The list of event requests that should be imported"
+      },
+      "shared": {
+        "description": "If there is any `shared` data from the original import request that may have caused conflict with data from within this event.",
+        "x-fullstory-doc-example-ignore": true,
+        "type": "object",
+        "properties": {
+          "context": {
+            "type": "object",
+            "properties": {
+              "browser": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "example": "https://app.example.com"
+                  },
+                  "user_agent": {
+                    "type": "string",
+                    "example": "Example_User_Agent"
+                  },
+                  "initial_referrer": {
+                    "type": "string",
+                    "example": "https://referrer.example.com"
+                  }
+                },
+                "description": "The browser context in which the events are attached to."
+              },
+              "mobile": {
+                "x-fullstory-doc-example-ignore": true,
+                "type": "object",
+                "properties": {
+                  "app_id": {
+                    "type": "string",
+                    "example": "com.company.example"
+                  },
+                  "app_version": {
+                    "type": "string",
+                    "example": "1.0.0"
+                  },
+                  "app_name": {
+                    "type": "string",
+                    "example": "example app"
+                  },
+                  "build_variant": {
+                    "type": "string"
+                  }
+                },
+                "description": "The mobile context in which the events are attached to."
+              },
+              "device": {
+                "x-fullstory-doc-example-ignore": true,
+                "type": "object",
+                "properties": {
+                  "manufacturer": {
+                    "type": "string",
+                    "example": "Device Manufacturer"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "screen_width": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "screen_height": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "viewport_width": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "viewport_height": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                },
+                "description": "The device context in which the events are attached to."
+              },
+              "location": {
+                "x-fullstory-doc-example-ignore": true,
+                "type": "object",
+                "properties": {
+                  "country": {
+                    "type": "string",
+                    "example": "US",
+                    "description": "ISO 3166-1 alpha-2 standard country code."
+                  },
+                  "region": {
+                    "type": "string",
+                    "example": "GA",
+                    "description": "ISO-3166-2 standard region code."
+                  },
+                  "city": {
+                    "type": "string",
+                    "example": "Atlanta",
+                    "description": "Name of the city."
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "ip_address": {
+                    "type": "string",
+                    "example": "127.0.0.1"
+                  }
+                },
+                "description": "The location context in which the events are attached to."
+              }
+            },
+            "description": "The context in which the events are attached to."
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "uid": {
+                "type": "string",
+                "example": "xyz123",
+                "description": "The application-specific ID you've given to the user.",
+                "maxLength": 256
+              },
+              "id": {
+                "type": "string",
+                "example": "123456789",
+                "description": "The Fullstory-assigned user ID. This value is returned in a `POST /v2/users` (create user) response."
+              }
+            },
+            "description": "The user identifier.\n\nIf `session.id` is provided, the `session.id` is enough to identify a session for which to create the event, and `user` will not be accepted.\n\nIf `session.use_most_recent` is set to `true`, one and only one`user` field is required."
+          },
+          "session": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "123456789:1298251231",
+                "description": "The Fullstory generated identifier for the session to associate the event with. If this session has recorded too much activity, the request is rejected with `code: session_page_limit_exceeded`; see the `session` field description."
+              },
+              "use_most_recent": {
+                "type": "boolean",
+                "example": true,
+                "description": "Associate events with the most recent session captured from the user. Defaults to `false`.`\n\nIf set to `true`, a `user` is required. The user must have a session within the past 30 minutes, otherwise the events will be created for the user without a session.\n\nIt is recommended to use `session.id` instead, when creating events for a specific session.\n\nIf the matched session has recorded too much activity, Fullstory starts a new session for the event instead of continuing to add to it; no error is returned in this case.",
+                "x-fullstory-doc-example-ignore": true
+              },
+              "uid": {
+                "type": "string",
+                "example": "xyz123",
+                "description": "The application-specific ID you've given to the session.",
+                "maxLength": 256
+              }
+            },
+            "description": "The session identifier. If `use_most_recent` is specified to `true` then the most recent session within 30 minutes will be used. If no recent session is found or `use_most_recent` is `false` or not specified, then a session with the provided `id` would be used. If that session is not found or the `id` is not provided, then the events will be created without a session.\n\nFullstory groups a session's events into a bounded number of internal \"pages\" as they're recorded. A session that has recorded an unusually large volume of activity can exhaust that internal limit; when that happens, `id`/`uid` targeting is rejected with `code: session_page_limit_exceeded` (send later events to a new session instead), while `use_most_recent` instead starts a new session for you automatically, with no error returned."
+          },
+          "page_properties": {
+            "type": "object",
+            "description": "Optional. Shared page-scoped properties applied to all events in the batch.",
+            "x-fullstory-doc-example-ignore": true
+          },
+          "page_properties_schema": {
+            "description": "Optional. Schema declaration for shared page_properties.",
+            "x-fullstory-doc-example-ignore": true,
+            "type": "object",
+            "properties": {
+              "properties": {
+                "type": "object",
+                "description": "A mapping of field names to their corresponding types."
+              }
+            }
+          }
+        }
+      }
+    },
+    "description": "The request payloads contains the list of events to be imported",
+    "required": [
+      "requests"
+    ]
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "job": {
+        "description": "Information about the job that was initiated to import the list of events submitted.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc123",
+            "description": "ID of the job."
+          },
+          "status": {
+            "example": "PROCESSING",
+            "description": "Status of the job.",
+            "type": "string",
+            "enum": [
+              "PROCESSING",
+              "COMPLETED",
+              "FAILED"
+            ],
+            "default": "UNKNOWN"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2017-01-15T01:30:15.01Z",
+            "description": "Time the job was accepted."
+          },
+          "finished": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time the job was finished, either successfully or unsuccessfully.",
+            "x-fullstory-doc-example-ignore": true
+          }
+        },
+        "title": "JobMetadata",
+        "required": [
+          "id",
+          "status",
+          "created"
+        ]
+      }
+    },
+    "required": [
+      "job"
+    ],
+    "example": {
+      "job": {
+        "id": "abc123",
+        "status": "PROCESSING",
+        "created": "2017-01-15T01:30:15.01Z"
+      }
+    }
+  }
+}

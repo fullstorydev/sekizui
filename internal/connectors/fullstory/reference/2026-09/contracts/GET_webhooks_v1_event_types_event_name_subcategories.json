@@ -1,0 +1,84 @@
+{
+  "tier": "anywhere",
+  "method": "GET",
+  "path": "/webhooks/v1/event-types/{event_name}/subcategories",
+  "operation_id": "ListEventSubcategories",
+  "title": "List Event Subcategories",
+  "description": "For event types that have subcategories, this pages through the available subcategories. A subcategory definition may include an optional `displayName` property. If so, user agents that show the results as a list should show that value to users instead of the `subcategory` value.",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/anywhere/v1/webhooks/list-event-subcategories/",
+  "parameters": [
+    {
+      "name": "event_name",
+      "description": "The name of an event type that has subcategories, as returned by the [List Event Types](../list-event-types) API.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "pagination_token",
+      "description": "Optional pagination token, for retrieving further results after a previous page request.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "Optional limit to the number of values returned. If not specified,\nthe max (1000) values are returned.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "subcategoryDefs": [
+        {
+          "subcategory": "QWRkZWQgSXRlbSB0byBDYXJ0QWRkZWQgSXRlbSB0byBDYXJ0QWRkZWQgSXRlbSB0byBDYXJ0QWRkZWQgSXRlbSB0byBDYXJ0",
+          "display_name": "Added Item to Cart"
+        },
+        {
+          "subcategory": "U2F3IEVycm9yIFBvcHVwU2F3IEVycm9yIFBvcHVwU2F3IEVycm9yIFBvcHVwU2F3IEVycm9yIFBvcHVw",
+          "display_name": "Saw Error Popup"
+        },
+        {
+          "subcategory": "VHJhbnNhY3Rpb24gQ29tcGxldGU=VHJhbnNhY3Rpb24gQ29tcGxldGU=VHJhbnNhY3Rpb24gQ29tcGxldGU=VHJhbnNhY3Rpb24gQ29tcGxldGU=",
+          "display_name": "Transaction Complete"
+        }
+      ]
+    },
+    "properties": {
+      "subcategory_defs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "subcategory": {
+              "type": "string",
+              "description": "The subcategory value. This is the value used when configuring endpoints that\nreceive event messages for this subcategory."
+            },
+            "display_name": {
+              "type": "string",
+              "description": "A user-friendly display name for the subcategory. If empty, user agents should\nshow the subcategory value."
+            }
+          }
+        },
+        "description": "The list of subcategory definitions, up to the requested limit."
+      },
+      "next_pagination_token": {
+        "type": "string",
+        "description": "If present, this pagination token can be supplied in a subsequent request to get\nthe next batch of results. If not present, there are no further results."
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "tier": "anywhere",
+  "method": "GET",
+  "path": "/webhooks/v1/event-types",
+  "operation_id": "ListEventTypes",
+  "title": "List Event Types",
+  "description": "Returns the list of all available event types. Some documented event types may not be returned if your Fullstory plan does not support them. If a returned event definition indicates that it has subcategories, that means that you must supply a subcategory when creating an endpoint that receives that type of event. You can get the list of available subcategories via the [List Event Subcategories](../list-event-subcategories) API.",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/anywhere/v1/webhooks/list-event-types/",
+  "response": {
+    "type": "object",
+    "example": {
+      "eventDefs": [
+        {
+          "eventName": "note.created",
+          "displayName": "Note Created",
+          "hasSubcategories": false
+        },
+        {
+          "eventName": "segment.trend.alert",
+          "displayName": "Segment Alert",
+          "hasSubcategories": true
+        },
+        {
+          "eventName": "nativemobile.event.crash",
+          "displayName": "Native Mobile Crash",
+          "hasSubcategories": false
+        }
+      ]
+    },
+    "properties": {
+      "event_defs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "event_name": {
+              "type": "string",
+              "description": "The name of an event."
+            },
+            "display_name": {
+              "type": "string",
+              "description": "A user-friendly display name for this kind of event."
+            },
+            "has_subcategories": {
+              "type": "boolean",
+              "description": "True if this kind of event has subcategories."
+            }
+          }
+        },
+        "description": "The list of event type definitions, up to the requested limit."
+      }
+    }
+  }
+}

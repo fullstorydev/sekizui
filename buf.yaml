@@ -1,0 +1,26 @@
+# v2 workspace. Requires buf >= 1.32; `make tools` pins v1.47.2 locally so this
+# does not depend on the ambient buf 1.8.0 outside this directory (D34).
+version: v2
+
+modules:
+  - path: proto
+
+lint:
+  use:
+    - STANDARD
+  # No exceptions, deliberately. Both findings STANDARD raised were worth fixing
+  # rather than suppressing:
+  #   - the service became GatewayService, naming the deployment (§5.3)
+  #   - Subscribe gained a SubscribeResponse wrapper, which carries a `dropped`
+  #     counter and turns silent event loss under at-most-once into visible loss
+  #
+  # Keep the except list empty. It is a useful forcing function.
+
+breaking:
+  use:
+    - FILE
+  # D44: the evolution rules in D41 only hold if a machine checks them.
+  #
+  # Guards the ENVELOPE only. Payload schemas are JSON Schema and need a separate
+  # compatibility checker — narrowing a type or adding a required field is
+  # breaking there too. Still TODO.

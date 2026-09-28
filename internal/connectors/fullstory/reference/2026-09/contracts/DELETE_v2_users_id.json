@@ -1,0 +1,38 @@
+{
+  "tier": "v2",
+  "method": "DELETE",
+  "path": "/v2/users/{id}",
+  "operation_id": "DeleteUser",
+  "title": "Delete User",
+  "description": "Delete a single user.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/users/delete-user/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "The Fullstory-generated id for the user - not required if `uid` is passed as a query parameter (the Fullstory-generated id differs from the customer-provided uid).",
+      "in": "path",
+      "required": true,
+      "x-fullstory-sdk-description-override": "The Fullstory-generated id for the user.",
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "uid",
+      "description": "The customer-provided id for a user - required if the `id` parameter isn't included in the URL path",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {}
+  }
+}

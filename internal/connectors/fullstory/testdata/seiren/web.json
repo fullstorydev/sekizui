@@ -1,0 +1,1151 @@
+{
+  "session": "4872936268960191121:8964144879987187716",
+  "query": "unique users who error clicked anything on a desktop browser",
+  "captured": "2026-09-26T20:32:25Z",
+  "truncated": false,
+  "sign_in": "https://www.cargorentalsfs.com/checkout#login?car-id=541965&location=Hiroshima",
+  "landed": "https://www.cargorentalsfs.com/checkout#billing?car-id=541965&location=Hiroshima",
+  "rows": [
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:51.041Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/?org=EXAMPLE&env=prod&realm=na",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.028Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.028Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.028Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.028Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.028Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.028Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "revoked",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:52.108Z",
+      "event_type": "consent",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:54.830Z",
+      "event_type": "interaction-to-next-paint",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "score=0.0053",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:54.834Z",
+      "event_type": "cumulative-layout-shift",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:55.410Z",
+      "event_type": "exception",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "LCP=4280ms,FCP=2892ms,Load=4845ms,DOMContent=1583ms,TTI=2892ms,TBT=0ms,TTFB=41ms",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:53:55.803Z",
+      "event_type": "page-load",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "revoked",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:05.486Z",
+      "event_type": "consent",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "revoked",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:05.638Z",
+      "event_type": "consent",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:23.312Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "delay=1ms",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:23.548Z",
+      "event_type": "first-input-delay",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:26.828Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "form",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:26.954Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "form",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:26.954Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "form",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:26.954Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "form",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:26.954Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "form",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:26.954Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "form",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:26.954Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "input",
+        "fs-form-name": "Booking Form",
+        "fs-input-name": "location",
+        "fs-input-type": "text",
+        "id": "city-input"
+      },
+      "event_time": "2026-09-26T14:54:33.258Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "input",
+        "fs-form-name": "Booking Form",
+        "fs-input-name": "location",
+        "fs-input-type": "text",
+        "id": "city-input"
+      },
+      "event_time": "2026-09-26T14:54:41.038Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "dropdown",
+        "fs-form-name": "Booking Form",
+        "id": "pickup-month-dropdown"
+      },
+      "event_time": "2026-09-26T14:54:41.063Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-dropdown-name": "pickupmonth",
+        "fs-element": "dropdown",
+        "fs-form-name": "Booking Form",
+        "id": "pickup-month-dropdown"
+      },
+      "event_time": "2026-09-26T14:54:46.629Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-dropdown-name": "pickupmonth",
+        "fs-element": "dropdown",
+        "fs-form-name": "Booking Form",
+        "id": "pickup-month-dropdown"
+      },
+      "event_time": "2026-09-26T14:54:46.725Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-dropdown-name": "dropoffmonth",
+        "fs-element": "dropdown",
+        "fs-form-name": "Booking Form",
+        "id": "dropoff-month-dropdown"
+      },
+      "event_time": "2026-09-26T14:54:46.725Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-dropdown-name": "dropoffmonth",
+        "fs-element": "dropdown",
+        "fs-form-name": "Booking Form",
+        "id": "dropoff-month-dropdown"
+      },
+      "event_time": "2026-09-26T14:54:46.725Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "dropdown",
+        "fs-form-name": "Booking Form",
+        "id": "pickup-day-dropdown"
+      },
+      "event_time": "2026-09-26T14:54:53.266Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-button-name": "Search Cars",
+        "fs-button-type": "submit",
+        "fs-element": "button",
+        "fs-form-name": "Booking Form"
+      },
+      "event_time": "2026-09-26T14:54:58.506Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:59.108Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/search?location=Hiroshima&makes=Bentley",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:54:59.699Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:00.572Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:18.234Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:18.442Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:18.647Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:18.709Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:18.854Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:18.925Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.128Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.164Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.199Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.398Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.442Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.487Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.783Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.817Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.844Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:19.886Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.072Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.088Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.105Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.121Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.309Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.329Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.347Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.368Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.395Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:20.818Z",
+      "event_type": "rage-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:22.346Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/search/rental?location=Hiroshima&car-id=541965",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "revoked",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:22.629Z",
+      "event_type": "consent",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:22.991Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:23.192Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:23.192Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "score=0.0066",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:23.949Z",
+      "event_type": "cumulative-layout-shift",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "LCP=2144ms,FCP=1640ms,Load=2807ms,DOMContent=1498ms,TTI=1640ms,TBT=0ms,TTFB=113ms",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:23.955Z",
+      "event_type": "page-load",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:24.288Z",
+      "event_type": "exception",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:37.401Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "delay=2ms",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:37.508Z",
+      "event_type": "first-input-delay",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:37.627Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:37.627Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:37.685Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:39.107Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:40.809Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:45.136Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:45.149Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:45.149Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:47.052Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:47.063Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:55:52.540Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:06.996Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:07.580Z",
+      "event_type": "interaction-to-next-paint",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:10.182Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:12.142Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:14.979Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:16.589Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:30.003Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:30.018Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/summary?location=Hiroshima&car-id=541965",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:30.233Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:30.233Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:30.233Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:41.372Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:41.411Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/checkout#login?car-id=541965&location=Hiroshima",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:48.570Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:53.367Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:55.653Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:55.908Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:58.207Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:56:58.434Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:04.548Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:05.555Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:05.645Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "description": "granted",
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:05.781Z",
+      "event_type": "consent",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:05.797Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/checkout#billing?car-id=541965&location=Hiroshima",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:11.485Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:19.796Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:19.967Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:26.234Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:26.448Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:27.978Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:28.203Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:35.234Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:35.396Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:35.414Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/checkout#payment?car-id=541965&location=Hiroshima",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:41.034Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:43.376Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:43.687Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:45.786Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:46.002Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:49.712Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:49.913Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:51.944Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:52.341Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:54.127Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:54.582Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:54.626Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/checkout#review?car-id=541965&location=Hiroshima",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:57:54.878Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "input",
+        "fs-form-name": "Promo Form",
+        "fs-input-name": "promo code",
+        "fs-input-type": "text",
+        "id": "promo-form"
+      },
+      "event_time": "2026-09-26T14:58:05.690Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "input",
+        "fs-form-name": "Promo Form",
+        "fs-input-name": "promo code",
+        "fs-input-type": "text",
+        "id": "promo-form"
+      },
+      "event_time": "2026-09-26T14:58:19.532Z",
+      "event_type": "input-change",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-button-name": "Apply",
+        "fs-button-type": "input",
+        "fs-element": "button",
+        "fs-form-name": "Promo Form",
+        "id": "promo-form"
+      },
+      "event_time": "2026-09-26T14:58:19.886Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:21.541Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:27.679Z",
+      "event_type": "error-click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:27.832Z",
+      "event_type": "console-error",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:27.877Z",
+      "event_type": "network-error",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:28.091Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:28.091Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:28.091Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:28.091Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:34.916Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:36.304Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:42.453Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:42.920Z",
+      "event_type": "element-seen",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:58:47.964Z",
+      "event_type": "navigate",
+      "page_url": "https://www.cargorentalsfs.com/checkout-success",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "page"
+      },
+      "event_time": "2026-09-26T14:59:01.898Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {
+        "fs-element": "page"
+      },
+      "event_time": "2026-09-26T14:59:03.901Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    },
+    {
+      "device_id": "4872936268960191121",
+      "event_properties": {},
+      "event_time": "2026-09-26T14:59:05.957Z",
+      "event_type": "click",
+      "session_id": "8964144879987187716"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/me",
+  "operation_id": "me",
+  "title": "Me",
+  "description": "This endpoint provides a way to test authentication with an API key. The API returns identifying information corresponding to the provided authentication method. This endpoint does not accept any parameters ### Response Headers * **Retry-After**: A numerical value in seconds is returned when the status code returned is 429. This indicates the number of seconds after which the request may be retried. ### Role Mappings The `role` field in the response maps to API key permission levels as follows: | Role Value | Permission Level | |---|---| | `USER` | Standard | | `ARCHITECT` | Architect | | `ADMIN` | Admin | ### Additional Information * [Authentication](../../authentication/getting-started)",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/authentication/me/",
+  "response": {
+    "type": "object",
+    "example": {
+      "email": "daniel@falko.com",
+      "orgId": "ABC",
+      "role": "ADMIN"
+    },
+    "properties": {
+      "orgId": {
+        "type": "string",
+        "description": "The Org Id corresponding to the authenticated API key"
+      },
+      "embedPartnerId": {
+        "type": "string",
+        "description": "The Embed Partner Id corresponding to the authenticated API key"
+      },
+      "email": {
+        "type": "string",
+        "description": "The email corresponding to the authenticated seat. This will be blank if the request used the legacy org key instead of a per-user key."
+      },
+      "clientId": {
+        "type": "string",
+        "description": "The email corresponding to the authenticated seat. This will be blank if the request used the legacy org key instead of a per-user key."
+      },
+      "role": {
+        "description": "The Role associated with the api key",
+        "title": "string",
+        "type": "string",
+        "enum": [
+          "UNKNOWN",
+          "ADMIN",
+          "USER",
+          "VIEW_ONLY",
+          "UMBRELLA_MANAGER",
+          "ARCHITECT"
+        ],
+        "default": "UNKNOWN"
+      },
+      "scopes": {
+        "type": "string",
+        "description": "The Scopes associated with the access token",
+        "title": "string"
+      }
+    }
+  }
+}

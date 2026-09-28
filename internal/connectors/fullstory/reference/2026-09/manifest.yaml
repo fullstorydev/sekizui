@@ -1,0 +1,181 @@
+# Fullstory Server API reference — snapshot 2026-09 (D299), written by sekizui-refsnap (D313).
+#
+# THE DATE IS THE LABEL, THIS FILE IS THE EVIDENCE. Every operation Fullstory documents at
+# developer.fullstory.com/server — v2, v1 and beta all count (D299) — read from the site's own build
+# (internal/apiref), not its prose. The driver may call only what is listed here (P4 criterion 7) and
+# must implement every entry not marked `excluded` (criterion 9). Each operation's full contract —
+# parameters, request body, success response — is beside this file in contracts/.
+#
+# DECISIONS ARE CARRIED FROM REVISION 2026-09, NEVER SCRAPED: the exclusions (D301, D305) and the
+# vendor-confirmed hosts (D304). api.eu1.fullstory.com is Fullstory's dedicated EU1 data center,
+# vendor-confirmed and used for EU residency (D288, D304).
+
+revision: 2026-09
+fetched: 2026-09-26
+source: https://developer.fullstory.com/sitemap.xml
+documented_hosts: [api.fullstory.com, export.fullstory.com]
+vendor_confirmed_hosts:
+  - {host: api.eu1.fullstory.com, dc: eu1, decision: D304}
+endpoints:
+  - {tier: v1, method: DELETE, path: "/users/v1/individual/{uid}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/v1/users/delete-user/"}
+  - {tier: v2, method: DELETE, path: "/v2/users/{id}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/users/delete-user/"}
+  - {tier: v2, method: DELETE, path: "/v2/visit_profile/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/delete/"}
+  - {tier: beta, method: DELETE, path: "/v2beta/privacy/elements/{id}", permission: Admin,
+     docs: "https://developer.fullstory.com/server/beta/elementblockrules/delete-element-block-rule/"}
+  - {tier: v1, method: GET, path: "/api/v1/export/get", permission: Architect, deprecated: true, excluded: D301, host: export.fullstory.com,
+     docs: "https://developer.fullstory.com/server/v1/exports/get-event-export/"}
+  - {tier: v1, method: GET, path: "/api/v1/export/list", permission: Architect, deprecated: true, excluded: D301, host: export.fullstory.com,
+     docs: "https://developer.fullstory.com/server/v1/exports/list-event-exports/"}
+  - {tier: v1, method: GET, path: "/api/v1/export/userEvents", permission: Architect, excluded: D301, host: export.fullstory.com,
+     docs: "https://developer.fullstory.com/server/v1/exports/get-user-events/"}
+  - {tier: v1, method: GET, path: "/api/v1/export/userPages", permission: Architect, excluded: D301, host: export.fullstory.com,
+     docs: "https://developer.fullstory.com/server/v1/exports/get-user-pages/"}
+  - {tier: v1, method: GET, path: "/me", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/authentication/me/"}
+  - {tier: v1, method: GET, path: "/operations/v1", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/operations/list-operations/"}
+  - {tier: v1, method: GET, path: "/operations/v1/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/operations/get-operation-status/"}
+  - {tier: v1, method: GET, path: "/search/v1/exports/{id}/results", permission: Architect, excluded: D301,
+     docs: "https://developer.fullstory.com/server/v1/search/get-search-export-results/"}
+  - {tier: v1, method: GET, path: "/segments/v1", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/segments/list-segments/"}
+  - {tier: v1, method: GET, path: "/segments/v1/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/segments/get-segment/"}
+  - {tier: v1, method: GET, path: "/sessions/v2", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/sessions/list-sessions/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/blocking", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-recording-block-rules/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/blocking/history", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-recording-block-rules-history/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/domain", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-domain-settings/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/domain/history", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-domain-settings-history/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/features", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-recording-features/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/features/history", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-recording-features-history/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/geo", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-geo-settings/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/geo/history", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-geo-settings-history/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/privacy", permission: Architect,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-privacy-settings/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/privacy/history", permission: Architect,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-privacy-settings-history/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/targeting", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-targeting-settings/"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/targeting/history", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/settings/get-targeting-settings-history/"}
+  - {tier: v1, method: GET, path: "/users/v1/individual/{uid}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/users/get-user/"}
+  - {tier: v2, method: GET, path: "/v2/events/batch/{job_id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/events/get-batch-events-import-status/"}
+  - {tier: v2, method: GET, path: "/v2/events/batch/{job_id}/errors", permission: Architect,
+     docs: "https://developer.fullstory.com/server/events/get-batch-events-import-errors/"}
+  - {tier: v2, method: GET, path: "/v2/events/batch/{job_id}/imports", permission: Architect,
+     docs: "https://developer.fullstory.com/server/events/get-batch-events-imports/"}
+  - {tier: v2, method: GET, path: "/v2/organization/quotas", permission: Standard,
+     docs: "https://developer.fullstory.com/server/organization/get-quotas/"}
+  - {tier: v2, method: GET, path: "/v2/sessions", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/list-sessions/"}
+  - {tier: v2, method: GET, path: "/v2/sessions/{session_id}/events", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/get-session-events/"}
+  - {tier: v2, method: GET, path: "/v2/sessions/{session_id}/summary", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/generate-summary/"}
+  - {tier: v2, method: GET, path: "/v2/users", permission: Architect,
+     docs: "https://developer.fullstory.com/server/users/list-users/"}
+  - {tier: v2, method: GET, path: "/v2/users/batch/{job_id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/users/get-batch-user-import-status/"}
+  - {tier: v2, method: GET, path: "/v2/users/batch/{job_id}/errors", permission: Architect,
+     docs: "https://developer.fullstory.com/server/users/get-batch-user-import-errors/"}
+  - {tier: v2, method: GET, path: "/v2/users/batch/{job_id}/imports", permission: Architect,
+     docs: "https://developer.fullstory.com/server/users/get-batch-user-imports/"}
+  - {tier: v2, method: GET, path: "/v2/users/stream/{request_id}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/users/get-create-user-stream-status/"}
+  - {tier: v2, method: GET, path: "/v2/users/{id}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/users/get-user/"}
+  - {tier: v2, method: GET, path: "/v2/visit_profile", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/list-profiles/"}
+  - {tier: v2, method: GET, path: "/v2/visit_profile/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/get/"}
+  - {tier: beta, method: GET, path: "/v2beta/datasets", permission: Standard,
+     docs: "https://developer.fullstory.com/server/beta/datasets/list-datasets/"}
+  - {tier: beta, method: GET, path: "/v2beta/extraction/rules", permission: Standard,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/list-extraction-rules/"}
+  - {tier: beta, method: GET, path: "/v2beta/extraction/rules/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/get-extraction-rule/"}
+  - {tier: beta, method: GET, path: "/v2beta/privacy/elements", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/elementblockrules/list-element-block-rules/"}
+  - {tier: beta, method: GET, path: "/v2beta/privacy/elements/{id}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/elementblockrules/get-element-block-rule/"}
+  - {tier: beta, method: PATCH, path: "/v2beta/extraction/rules/{id}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/update-extraction-rule/"}
+  - {tier: v1, method: POST, path: "/operations/v1/{id}/cancel", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/operations/cancel-operation/"}
+  - {tier: v1, method: POST, path: "/segments/v1/exports", permission: Architect, excluded: D301,
+     docs: "https://developer.fullstory.com/server/v1/segments/create-segment-export/"}
+  - {tier: v1, method: POST, path: "/settings/recording/v1/privacy:element-block-rules", permission: Admin,
+     docs: "https://developer.fullstory.com/server/v1/settings/update-element-block-rules/"}
+  - {tier: v1, method: POST, path: "/users/v1/individual/{uid}/customevent", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/users/set-user-events/"}
+  - {tier: v1, method: POST, path: "/users/v1/individual/{uid}/customvars", permission: Standard,
+     docs: "https://developer.fullstory.com/server/v1/users/set-user-properties/"}
+  - {tier: v2, method: POST, path: "/v2/annotations", permission: Standard,
+     docs: "https://developer.fullstory.com/server/annotations/create-annotation/"}
+  - {tier: v2, method: POST, path: "/v2/events", permission: Standard,
+     docs: "https://developer.fullstory.com/server/events/create-event/"}
+  - {tier: v2, method: POST, path: "/v2/events/batch", permission: Standard,
+     docs: "https://developer.fullstory.com/server/events/create-batch-events-import-job/"}
+  - {tier: v2, method: POST, path: "/v2/sessions/{session_id}/context", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/generate-context/"}
+  - {tier: v2, method: POST, path: "/v2/sessions/{session_id}/summary", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/generate-summary-with-overrides/"}
+  - {tier: v2, method: POST, path: "/v2/users", permission: Standard,
+     docs: "https://developer.fullstory.com/server/users/create-user/"}
+  - {tier: v2, method: POST, path: "/v2/users/batch", permission: Standard,
+     docs: "https://developer.fullstory.com/server/users/create-batch-user-import-job/"}
+  - {tier: v2, method: POST, path: "/v2/users/stream", permission: Standard,
+     docs: "https://developer.fullstory.com/server/users/create-user-stream/"}
+  - {tier: v2, method: POST, path: "/v2/users/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/users/update-user/"}
+  - {tier: v2, method: POST, path: "/v2/visit_profile", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/create-profile/"}
+  - {tier: v2, method: POST, path: "/v2/visit_profile/{id}", permission: Standard,
+     docs: "https://developer.fullstory.com/server/sessions/update/"}
+  - {tier: beta, method: POST, path: "/v2beta/extraction/rules", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/create-extraction-rule/"}
+  - {tier: beta, method: POST, path: "/v2beta/extraction/rules/{id}/archive", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/archive-extraction-rule/"}
+  - {tier: beta, method: POST, path: "/v2beta/extraction/rules/{id}/unarchive", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/unarchive-extraction-rule/"}
+  - {tier: beta, method: POST, path: "/v2beta/privacy/elements", permission: Admin,
+     docs: "https://developer.fullstory.com/server/beta/elementblockrules/create-element-block-rule/"}
+  - {tier: beta, method: POST, path: "/v2beta/privacy/elements/{id}", permission: Admin,
+     docs: "https://developer.fullstory.com/server/beta/elementblockrules/update-element-block-rule/"}
+  - {tier: beta, method: PUT, path: "/v2beta/extraction/rules/{id}", permission: Architect,
+     docs: "https://developer.fullstory.com/server/beta/extractionrules/update-extraction-rule-put/"}
+
+# SERVER-SIDE OPERATIONS DOCUMENTED OUTSIDE /server/, excluded by decision — listed so the drift
+# arm still surfaces a change here (D305).
+excluded_outside_server:
+  - {section: anywhere, method: DELETE, path: "/webhooks/v1/endpoints/{id}", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/delete-endpoint/"}
+  - {section: anywhere, method: GET, path: "/webhooks/v1/endpoints", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/list-endpoints/"}
+  - {section: anywhere, method: GET, path: "/webhooks/v1/endpoints/{id}", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/get-endpoint/"}
+  - {section: anywhere, method: GET, path: "/webhooks/v1/event-types", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/list-event-types/"}
+  - {section: anywhere, method: GET, path: "/webhooks/v1/event-types/{event_name}/sample", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/get-sample-data/"}
+  - {section: anywhere, method: GET, path: "/webhooks/v1/event-types/{event_name}/subcategories", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/list-event-subcategories/"}
+  - {section: anywhere, method: POST, path: "/webhooks/v1/endpoints", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/create-endpoint/"}
+  - {section: anywhere, method: POST, path: "/webhooks/v1/endpoints/{id}", excluded: D305,
+     docs: "https://developer.fullstory.com/anywhere/v1/webhooks/update-endpoint/"}

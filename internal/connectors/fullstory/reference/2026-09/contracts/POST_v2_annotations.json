@@ -1,0 +1,85 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/annotations",
+  "operation_id": "CreateAnnotation",
+  "title": "Create Annotation",
+  "description": "Creates an annotation with the specified details.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/annotations/create-annotation/",
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string",
+        "example": "Code Release",
+        "description": "The annotation's text.",
+        "maxLength": 200
+      },
+      "start_time": {
+        "type": "string",
+        "format": "ISO 8601 string",
+        "example": "2024-06-29T14:23:23Z",
+        "description": "Optional. The annotation's start time represented in ISO 8601 format. If not provided, the current Fullstory server time will be used."
+      },
+      "end_time": {
+        "type": "string",
+        "format": "ISO 8601 string",
+        "example": "2024-06-30T14:23:23Z",
+        "description": "Optional. The annotation's end time represented in ISO 8601 format. If not provided, it will be set to the annotation's start_time. If provided, must be after start_time."
+      },
+      "source": {
+        "type": "string",
+        "example": "Deploy Pipeline",
+        "description": "Optional. A string representing the source or creator of this annotation, which will be displayed on the annotation's visualization.",
+        "maxLength": 40
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string",
+        "example": "Code Release",
+        "description": "The annotation's text."
+      },
+      "start_time": {
+        "type": "string",
+        "format": "ISO 8601 string",
+        "example": "2024-06-29T14:23:23Z",
+        "description": "The annotation's start time represented in ISO 8601 format. If this was not set in the request, it will be set to Fullstory's server time."
+      },
+      "end_time": {
+        "type": "string",
+        "format": "ISO 8601 string",
+        "example": "2024-06-29T14:23:23Z",
+        "description": "The annotation's end time represented in ISO 8601 format. If this was not set in the request, it will be set the start_time field."
+      },
+      "source": {
+        "type": "string",
+        "example": "Deploy Pipeline",
+        "description": "The annotation's provided 'source' field."
+      }
+    },
+    "description": "Server response for creating an annotation.",
+    "required": [
+      "text",
+      "start_time",
+      "end_time",
+      "source"
+    ],
+    "example": {
+      "text": "Code Release",
+      "start_time": "2024-06-29T14:23:23Z",
+      "end_time": "2024-06-29T14:23:23Z",
+      "source": "Deploy Pipeline"
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/settings/recording/v1/domain/history",
+  "operation_id": "GetDomainSettingsHistory",
+  "title": "Get Domain Settings History",
+  "description": "Returns a list of versions, each denoting a set of the Domain Settings. Every time these settings are modified, a new version is created. This endpoint allows for paging through the history of these settings for audit purposes.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/settings/get-domain-settings-history/",
+  "parameters": [
+    {
+      "name": "paginationToken",
+      "description": "The token to start the page at. The default is the most recent version of settings.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "The max number of returned versions. The default is 20 and the max is 100.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    {
+      "name": "platform",
+      "description": "Determines which platform to show settings from - `web` or `mobile`. Defaults to `web`.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "versions": [
+        {
+          "onlyRecordKnownDomains": false,
+          "domains": [
+            {
+              "disabled": false,
+              "domain": "fullstory.com"
+            }
+          ],
+          "metadata": {
+            "lastUpdated": "2020-10-01T23:53:05.821Z",
+            "lastUpdatedBy": "bob@example.com",
+            "created": "2020-10-01T23:53:05.821Z",
+            "createdBy": "bob@example.com"
+          }
+        }
+      ],
+      "next_pagination_token": ""
+    },
+    "properties": {
+      "versions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "example": {
+            "onlyRecordKnownDomains": false,
+            "domains": [
+              {
+                "disabled": false,
+                "domain": "fullstory.com"
+              }
+            ],
+            "metadata": {
+              "lastUpdated": "2020-10-01T23:53:05.821Z",
+              "lastUpdatedBy": "bob@example.com",
+              "created": "2020-10-01T23:53:05.821Z",
+              "createdBy": "bob@example.com"
+            }
+          },
+          "properties": {
+            "onlyRecordKnownDomains": {
+              "type": "boolean"
+            },
+            "domains": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "domain": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "lastUpdated": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this entity was last updated."
+                },
+                "lastUpdatedBy": {
+                  "type": "string",
+                  "description": "Who made the last update to this entity."
+                },
+                "created": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this entity was first created."
+                },
+                "createdBy": {
+                  "type": "string",
+                  "description": "Who first created this entity."
+                }
+              },
+              "title": "This is a public-facing semi-duplicate of protoauditstore.AuditMetadata"
+            }
+          }
+        }
+      },
+      "nextPaginationToken": {
+        "type": "string"
+      }
+    }
+  }
+}

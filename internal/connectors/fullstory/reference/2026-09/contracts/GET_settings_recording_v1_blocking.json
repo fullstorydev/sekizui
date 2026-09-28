@@ -1,0 +1,77 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/settings/recording/v1/blocking",
+  "operation_id": "GetRecordingBlockRules",
+  "title": "Get Block Rules",
+  "description": "Returns the current recording block rules.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/settings/get-recording-block-rules/",
+  "response": {
+    "type": "object",
+    "example": {
+      "blockedIps": [
+        "55.55.55.55",
+        "99.99.99.*"
+      ],
+      "blockedUas": [
+        "YandexBot",
+        "facebot"
+      ],
+      "blockedAppIds": [],
+      "metadata": {
+        "lastUpdated": "2020-10-23T15:05:50.778Z",
+        "lastUpdatedBy": "bob@example.com",
+        "created": "2020-10-01T23:53:06.141Z",
+        "createdBy": "bob@example.com"
+      }
+    },
+    "properties": {
+      "blockedIps": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "blockedUas": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "blockedAppIds": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this entity was last updated."
+          },
+          "lastUpdatedBy": {
+            "type": "string",
+            "description": "Who made the last update to this entity."
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this entity was first created."
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Who first created this entity."
+          }
+        },
+        "title": "This is a public-facing semi-duplicate of protoauditstore.AuditMetadata"
+      }
+    }
+  }
+}

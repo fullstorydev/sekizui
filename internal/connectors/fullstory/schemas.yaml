@@ -1,0 +1,148 @@
+# Fullstory's data schemas (D279) — declared by the connector, CLOSED BY
+# DEFAULT: a field not named here is stripped at ingest, recursively.
+#
+# Built from the vendor's documented event types and one read of a real
+# (synthetic) session on 2026-09-23: fifteen kinds; custom events whose
+# `description` re-serialises their properties; clicks carrying `email`; input
+# changes carrying `fs-input-value`; page URLs carrying account ids.
+
+- type: fullstory.session.v1
+  schema:
+    type: object
+    properties:
+      session_id: {type: string}
+      user_id: {type: string}
+      created_time: {type: string}
+      fs_url: {type: string}
+      uid: {type: string}
+
+- type: fullstory.session_event.v1
+  schema:
+    type: object
+    properties:
+      device_id: {type: string}
+      session_id: {type: string}
+      # The time a refines rule sorts and pairs by (D300, D317): RFC 3339 with
+      # milliseconds, confirmed live on 2026-09-24.
+      event_time: {type: string, format: date-time}
+      event_type: {type: string}
+      event_properties: {type: object}
+      description: {type: string}
+      page_url: {type: string}
+  family:
+    discriminator: event_type
+    properties: event_properties
+    # Fields that can restate anything: a custom event's description is its
+    # properties re-serialised, a click's quotes on-screen text, a URL carries
+    # account ids and campaign parameters. Kept only where a kind names them.
+    free_text: [description, page_url]
+    kinds:
+      # --- documented standard types ---------------------------------------
+      navigate: {schema: {type: object}, keep_free_text: [page_url]}
+      click: &element-interaction
+        schema:
+          type: object
+          properties:
+            fs-element: {type: string}
+            fs-button-name: {type: string}
+            fs-button-type: {type: string}
+            fs-form-name: {type: string}
+            fs-input-name: {type: string}
+            fs-input-type: {type: string}
+            id: {type: string}
+      dead-click: *element-interaction
+      error-click: *element-interaction
+      rage-click: *element-interaction
+      # NOT `fs-input-value`: what the user typed.
+      input-change:
+        schema:
+          type: object
+          properties:
+            fs-element: {type: string}
+            fs-form-name: {type: string}
+            fs-input-name: {type: string}
+            fs-input-type: {type: string}
+            fs-dropdown-name: {type: string}
+            id: {type: string}
+      network-error: {schema: {type: object}}
+      console-error: {schema: {type: object}}
+      mouse-thrash: {schema: {type: object}}
+      highlight: {schema: {type: object}}
+      copy: {schema: {type: object}}
+      paste: {schema: {type: object}}
+      element-seen: {schema: {type: object}}
+      # --- standard types observed live, not in the documented list ----------
+      consent: {schema: {type: object}, keep_free_text: [description]}
+      page-load: {schema: {type: object}, keep_free_text: [description]}
+      cumulative-layout-shift: {schema: {type: object}, keep_free_text: [description]}
+      first-input-delay: {schema: {type: object}, keep_free_text: [description]}
+      # Its description quotes the element's on-screen text, so none is kept.
+      interaction-to-next-paint: {schema: {type: object}}
+      # An error message can carry anything the page put in it.
+      exception: {schema: {type: object}}
+    # CUSTOM EVENTS. Every org names its own, so this connector cannot list
+    # them — and it does not fetch them unless the target names them in its
+    # `custom_events` setting (Generate Context's `include_types`). Those it
+    # was told to fetch enter OPEN: the org asked for them, and its
+    # deployment protects consumers with shin and anzen.
+    other:
+      open:
+        schema: {type: object, additionalProperties: true}
+        keep_free_text: [description]
+
+# What a Fullstory write returns into Sekizui (D283): the identifiers an audit
+# row joins on (`externalRef` reads these), and nothing else the vendor echoes.
+- type: fullstory.write_result.v1
+  schema:
+    type: object
+    properties:
+      id: {type: string}
+      uid: {type: string}
+      event_id: {type: string}
+      user_id: {type: string}
+
+# The seiren type Fullstory's refines rules write (D297, D300, D317): one key per
+# rule in reflexes.yaml. It types a Seiren's `value`; the window a refinement
+# covers and what it could not build are the ENGINE's, typed once in proto.
+- type: fullstory.session_context.v1
+  schema:
+    type: object
+    properties:
+      frustration:
+        type: array
+        items:
+          type: object
+          properties:
+            event_type: {type: string}
+            page: {type: object, properties: {page_url: {type: string}}}
+            count: {type: integer}
+      path:
+        type: array
+        items:
+          type: object
+          properties:
+            event_time: {type: string, format: date-time}
+            page_url: {type: string}
+            next: {type: object, properties: {duration_s: {type: number}}}
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            event_time: {type: string, format: date-time}
+            event_type: {type: string}
+            cause:
+              type: object
+              properties:
+                event_type: {type: string}
+                event_time: {type: string, format: date-time}
+                duration_s: {type: number}
+      login:
+        type: object
+        properties:
+          event_time: {type: string, format: date-time}
+          landed:
+            type: object
+            properties:
+              event_time: {type: string, format: date-time}
+              duration_s: {type: number}

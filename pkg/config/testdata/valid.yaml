@@ -1,0 +1,57 @@
+# A minimal but complete P0 configuration, in the format §4.7 documents.
+#
+# Everything here is FAKE. P0's goal is one command traversing identity ->
+# policy -> driver -> audit end to end; real credentials and real systems arrive
+# in P2. The credential below is an env:// reference precisely because §4.7
+# forbids material in configuration even when the material is imaginary.
+
+stages: [raw, enriched, triaged, judged]
+
+targets:
+  - ref: kata:alpha
+    kind: kata
+    base_url: https://alpha.invalid
+    credential: env://SEKIZUI_FAKE_ALPHA_TOKEN
+    tenant: alpha
+    residency: eu
+
+  - ref: kata:beta
+    kind: kata
+    base_url: https://beta.invalid
+    credential: env://SEKIZUI_FAKE_BETA_TOKEN
+    tenant: beta
+    residency: us
+
+grants:
+  # A narrow agent: one action, one target, constrained.
+  - principal: agent:triage
+    allow:
+      - action: kata.create_issue
+        target: kata:alpha
+        where:
+          project: [PROJ]
+        rate_per_hr: 10
+    escalate:
+      - action: kata.delete_project
+        target: kata:alpha
+
+  # A broader agent, to prove the intersection is real rather than assumed.
+  - principal: agent:architect
+    allow:
+      - action: kata.create_issue
+        target: kata:alpha
+      - action: kata.create_issue
+        target: kata:beta
+      - action: kata.read
+        target: kata:beta
+
+  # The mesh. may_speak_for is ENUMERATED — a wildcard here would recreate the
+  # confused-deputy problem the delegation model exists to solve (§4.4.1), and
+  # Document.Validate rejects one.
+  - principal: mesh:primary
+    allow:
+      - action: kata.create_issue
+        target: kata:alpha
+    may_speak_for:
+      - agent:triage
+      - agent:architect

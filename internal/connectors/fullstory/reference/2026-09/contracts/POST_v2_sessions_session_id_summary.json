@@ -1,0 +1,408 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/sessions/{session_id}/summary",
+  "operation_id": "GenerateSummaryWithOverrides",
+  "title": "Generate Summary With Overrides",
+  "description": "Return a generative AI summarization of the specified session using the supplied [prompt summary profile](/server/sessions/create-profile/) that specifies both prompting instructions and session context configuration.\nUse the [`GET` version](/server/sessions/generate-summary/) of this endpoint when generating a summary with an existing prompt profile as-is. Use this `POST` version when you'd like to provide an ad-hoc prompt or a profile configuration, or when you need to override specific prompt profile parameters for a single request. When overrides are provided, non-array fields replace the profile values and array fields are additive. See [Merging Examples](#merging-examples) for details.\nSee [the Generate Summary Overview section of the Introduction](/server/sessions/introduction/#generate-summary-overview) for detailed guidance on generating session summaries.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/generate-summary-with-overrides/",
+  "parameters": [
+    {
+      "name": "session_id",
+      "description": "The UTF-8 encoded ID of the session for which to generate context data. To retrieve the Session ID you may use the appropriate Get Session Details API for [Web](/browser/get-session-details/), [iOS](/mobile/ios/get-session-details/), or [Android](/mobile/android/get-session-details/). As Session IDs include `:` separators the ID must be URL encoded using the `%3A` substitution. [Learn more](https://help.fullstory.com/hc/en-us/articles/34050890025111-Working-with-session-ID-values-for-use-with-the-server-API).",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "config_profile": {
+        "type": "string",
+        "example": "123e4567-e89b-12d3-a456-426614174000",
+        "description": "The `id` value returned from [Create Profile](/server/sessions/create-profile/). If no `config_profile` is provided, a simple synopsis of the user's experience will be returned."
+      },
+      "slice": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "default": "FIRST",
+            "title": "return earliest or latest events as defined",
+            "type": "string",
+            "enum": [
+              "UNSPECIFIED",
+              "FIRST",
+              "LAST",
+              "TIMESTAMP"
+            ]
+          },
+          "event_limit": {
+            "type": "integer",
+            "format": "int32",
+            "title": "only keep the specified number of events if this is greater than zero"
+          },
+          "duration_limit_ms": {
+            "type": "string",
+            "format": "int64",
+            "title": "only keep events within the specified time duration from the beginning or end time"
+          },
+          "start_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If specified, the event limit and duration limit will be applied to the time beginning at this timestamp.",
+            "title": "apply event_limit and duration_limit_ms to the time beginning at start_timestamp"
+          },
+          "end_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If specified, only events before this timestamp will be included in the context."
+          }
+        },
+        "description": "Optional override for session event slicing. Fields set here are merged on top of the existing profile's slice configuration."
+      },
+      "context": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Controls the session context elements to include, takes precedence over individual inclusion fields. Can be 'user', 'org', 'location', 'device'. If not specified and not excluded, all context elements are included."
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Controls the session context elements to exclude, takes precedence over individual exclusion fields. Can be 'user', 'org', 'location', 'device'. If not specified and not excluded, all context elements are included."
+          },
+          "exclude_org_context": {
+            "type": "boolean"
+          },
+          "exclude_user_context": {
+            "type": "boolean"
+          },
+          "exclude_location": {
+            "type": "boolean"
+          },
+          "exclude_device": {
+            "type": "boolean"
+          },
+          "exclude_descriptions": {
+            "type": "boolean",
+            "description": "Deprecated: use event.include_descriptions instead (takes precedence)."
+          }
+        },
+        "description": "Optional override for session context inclusion/exclusion. Fields set here are merged on top of the existing profile's context configuration."
+      },
+      "events": {
+        "type": "object",
+        "properties": {
+          "exclude_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to exclude from the context. Valid event types: `navigate`, `click`, `dead-click`, `error-click`, `rage-click`, `input-change`, `network-error`, `console-error`, `mouse-thrash`, `highlight`, `copy`, `paste`, `element-seen`. See the [AI Session Summary API documentation](/anywhere/activation/ai-session-summary-api/#includingexcluding-event-types) for detailed descriptions of each event type."
+          },
+          "include_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to include in the context. If specified, only these event types will be included. Valid event types: `navigate`, `click`, `dead-click`, `error-click`, `rage-click`, `input-change`, `network-error`, `console-error`, `mouse-thrash`, `highlight`, `copy`, `paste`, `element-seen`. See the [AI Session Summary API documentation](/anywhere/activation/ai-session-summary-api/#includingexcluding-event-types) for detailed descriptions of each event type."
+          },
+          "exclude_defined_events": {
+            "type": "boolean"
+          },
+          "exclude_api_events": {
+            "type": "boolean"
+          },
+          "exclude_event_timestamps": {
+            "type": "boolean"
+          },
+          "exclude_selectors": {
+            "type": "boolean"
+          },
+          "include_selector_tags": {
+            "type": "boolean"
+          },
+          "trim_to_last_n_selectors": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "include_tab_index": {
+            "type": "boolean"
+          },
+          "include_descriptions": {
+            "type": "boolean"
+          }
+        },
+        "description": "Optional override for event type filtering. Fields set here are merged on top of the existing profile's events configuration."
+      },
+      "cache": {
+        "type": "object",
+        "properties": {
+          "enable_event_cache": {
+            "type": "boolean"
+          }
+        },
+        "description": "Optional override for event caching behavior. Fields set here are merged on top of the existing profile's cache configuration."
+      },
+      "llm": {
+        "description": "Optional override for LLM model selection, prompts, temperature, and response schema. Fields set here are merged on top of the existing profile's LLM configuration.",
+        "type": "object",
+        "properties": {
+          "pre_prompt": {
+            "type": "string",
+            "description": "Text to be included in the Generative AI prompt before including the contextual representation of the requested session."
+          },
+          "post_prompt": {
+            "type": "string",
+            "description": "Text to be included in the Generative AI prompt after including the contextual representation of the requested session."
+          },
+          "temperature": {
+            "type": "number",
+            "format": "float",
+            "description": "Controls the randomness of text generated by a large language model."
+          },
+          "response_schema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "OPENAPI_TYPE_UNSPECIFIED",
+                  "STRING",
+                  "NUMBER",
+                  "INTEGER",
+                  "BOOLEAN",
+                  "ARRAY",
+                  "OBJECT"
+                ],
+                "default": "OPENAPI_TYPE_UNSPECIFIED"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "items": {
+                "type": "object",
+                "properties": "circular([object Object])"
+              },
+              "properties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": "circular([object Object])"
+                }
+              },
+              "required": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "nullable": {
+                "type": "boolean"
+              },
+              "enum": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "format": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "type": "OBJECT",
+              "title": "SessionSummary",
+              "description": "Structured output for the LLM response",
+              "properties": {
+                "summary": {
+                  "type": "STRING",
+                  "description": "Concise session summary"
+                },
+                "sentiment": {
+                  "type": "STRING",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ],
+                  "format": "enum"
+                },
+                "issues": {
+                  "type": "ARRAY",
+                  "items": {
+                    "type": "STRING"
+                  }
+                }
+              },
+              "required": [
+                "summary"
+              ]
+            },
+            "description": "Defines the JSON schema for the model's output. The LLM response is highly reliable at conforming to this schema, ensuring a structured and predictable format.\n\nThis implementation adheres to the JSON Schema specification, except that 1) All `type` values must be capitalized (e.g., `OBJECT`, `STRING`, etc.) and 2) The `$schema` and `$id` properties are not supported and must be omitted from the schema definition.\n\nSee the Introduction for a [detailed example](/server/sessions/introduction/#example-response-schema)."
+          }
+        }
+      }
+    },
+    "description": "SummaryWithOverridesReq is the request for GenerateSummaryWithOverrides (POST).\nIt extends SummaryReq's fields with optional per-request configuration overrides\nthat are merged on top of the existing profile via proto.Merge."
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string"
+      },
+      "response": {
+        "type": "object",
+        "example": {
+          "summary": "User browsed products, added an item to cart, but abandoned checkout after encountering a payment error.",
+          "sentiment": "negative",
+          "issues": [
+            "payment error at checkout",
+            "slow page load on product detail"
+          ]
+        },
+        "additionalProperties": {},
+        "description": "The structured LLM response as key-value pairs, populated when a response_schema is configured. Each key corresponds to a property defined in the schema, and values conform to the schema's type constraints."
+      },
+      "response_schema": {
+        "example": {
+          "type": "OBJECT",
+          "title": "SessionSummary",
+          "description": "Structured output for the LLM response",
+          "properties": {
+            "summary": {
+              "type": "STRING",
+              "description": "Concise session summary"
+            },
+            "sentiment": {
+              "type": "STRING",
+              "enum": [
+                "positive",
+                "neutral",
+                "negative"
+              ],
+              "format": "enum"
+            },
+            "issues": {
+              "type": "ARRAY",
+              "items": {
+                "type": "STRING"
+              }
+            }
+          },
+          "required": [
+            "summary"
+          ]
+        },
+        "description": "Echoes the structured response schema used, enabling clients to validate/interpret the dynamic response map.",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "OPENAPI_TYPE_UNSPECIFIED",
+              "STRING",
+              "NUMBER",
+              "INTEGER",
+              "BOOLEAN",
+              "ARRAY",
+              "OBJECT"
+            ],
+            "default": "OPENAPI_TYPE_UNSPECIFIED"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "items": {
+            "type": "object",
+            "properties": "circular([object Object])"
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": "circular([object Object])"
+            }
+          },
+          "required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nullable": {
+            "type": "boolean"
+          },
+          "enum": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "format": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "example": {
+      "response": {
+        "summary": "User browsed products, added an item to cart, but abandoned checkout after encountering a payment error.",
+        "sentiment": "negative",
+        "issues": [
+          "payment error at checkout",
+          "slow page load on product detail"
+        ]
+      },
+      "response_schema": {
+        "type": "OBJECT",
+        "title": "SessionSummary",
+        "description": "Structured output for the LLM response",
+        "properties": {
+          "summary": {
+            "type": "STRING",
+            "description": "Concise session summary"
+          },
+          "sentiment": {
+            "type": "STRING",
+            "enum": [
+              "positive",
+              "neutral",
+              "negative"
+            ],
+            "format": "enum"
+          },
+          "issues": {
+            "type": "ARRAY",
+            "items": {
+              "type": "STRING"
+            }
+          }
+        },
+        "required": [
+          "summary"
+        ]
+      }
+    }
+  }
+}

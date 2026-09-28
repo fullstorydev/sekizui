@@ -1,0 +1,29 @@
+# The Fullstory org the live arms and the live demo reach — YOURS. `make live-config` copies this
+# to dev/fullstory-live.yaml, which is gitignored; fill in every field there, never here.
+#
+# The live arms WRITE: `make acceptance-live` appends a server-side event to the session below and
+# upserts a property on the user below, and `POST /v2/events` cannot be undone. Nothing is
+# discovered — the writes go only where these fields point. Use a test org if you have one.
+#
+# Every field can be overridden by an environment variable (in brackets), for CI.
+
+# A file holding a Fullstory API key, relative to the repository root or absolute. Keep it under
+# dev/secrets/ (gitignored). An admin creates keys in Fullstory; see https://developer.fullstory.com/
+# for keys and their permission levels. The writes need a key that may create events and users.
+# [SEKIZUI_LIVE_KEY]
+key: dev/secrets/fullstory.key
+
+# The user the writes upsert and the session poll reads: the uid your site passes to FS.identify.
+# [SEKIZUI_LIVE_UID]
+uid:
+
+# One of that user's sessions, as the API names it: the `id` field of
+# `GET https://api.fullstory.com/v2/sessions?uid=<uid>`, which looks like <uuid>:<uuid>.
+# [SEKIZUI_LIVE_SESSION]
+session:
+
+# The same session as the browser shows it — open it in Fullstory and copy the address:
+# https://app.fullstory.com/ui/<org>/session/<device>:<session>. The org is read from here.
+# NA1 orgs only today: the acceptance deployment serves the `us` class.
+# [SEKIZUI_LIVE_SESSION_URL]
+session_url:

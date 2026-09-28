@@ -1,0 +1,85 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/organization/quotas",
+  "operation_id": "GetQuotas",
+  "title": "Get Quota",
+  "description": "Returns all quota usage for the requesting organization, including session and server event quotas.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/organization/get-quotas/",
+  "response": {
+    "type": "object",
+    "properties": {
+      "session_quota": {
+        "description": "Session quota usage for the current billing cycle",
+        "type": "object",
+        "properties": {
+          "usage": {
+            "type": "string",
+            "format": "uint64",
+            "example": "15234",
+            "description": "Current count of usage within the billing cycle"
+          },
+          "limit": {
+            "type": "string",
+            "format": "int64",
+            "example": "100000",
+            "description": "Quota limit for the billing cycle"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start of the current billing cycle"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of the current billing cycle"
+          }
+        }
+      },
+      "server_event_quota": {
+        "description": "Server-side event quota usage for the current billing cycle",
+        "type": "object",
+        "properties": {
+          "usage": {
+            "type": "string",
+            "format": "uint64",
+            "example": "15234",
+            "description": "Current count of usage within the billing cycle"
+          },
+          "limit": {
+            "type": "string",
+            "format": "int64",
+            "example": "100000",
+            "description": "Quota limit for the billing cycle"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start of the current billing cycle"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of the current billing cycle"
+          }
+        }
+      }
+    },
+    "description": "Response containing quota usage for the requesting organization",
+    "example": {
+      "session_quota": {
+        "usage": "15234",
+        "limit": "100000"
+      },
+      "server_event_quota": {
+        "usage": "15234",
+        "limit": "100000"
+      }
+    }
+  }
+}

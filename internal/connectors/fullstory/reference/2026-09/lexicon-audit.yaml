@@ -1,0 +1,95 @@
+# Lexicon's Fullstory.js, audited against reference/2026-09/manifest.yaml (D294, P4 step 4).
+#
+# Lexicon is the baseline and is read, never edited (D81). Every call site is classified:
+#   carried      — documented exactly as Lexicon calls it
+#   corrected    — the capability is documented, at a different method or path; carry the DOCUMENTED form
+#   not_carried  — undocumented; an undocumented call is one the vendor never promised (D294)
+#   excluded     — documented or not, excluded by a named decision
+# 29 call sites, 27 distinct endpoints. Extracted from `_makeRequest` call sites with the endpoint
+# template resolved (apiVersion = 'v2'); the multi-DC logic (fullstory_dc: EU1 -> api.eu1.fullstory.com,
+# Fullstory.js lines 18-30) is CARRIED as-is: api.eu1 is the dedicated EU1 DC (D288, D304).
+
+source: lexicon/Fullstory.js
+audited: 2026-09-26
+calls:
+  - {function: postCustomEvent, method: POST, path: "/v2/events", verdict: carried}
+  - {function: searchSessions, method: POST, path: "/v2/sessions/search", verdict: not_carried,
+     why: "undocumented: no /v2/sessions/search in the reference; GET /v2/sessions is the documented listing"}
+  - {function: createUser, method: POST, path: "/v2/users", verdict: carried}
+  - {function: getUser, method: GET, path: "/v2/users/{id}", verdict: carried}
+  - {function: updateUser, method: PATCH, path: "/v2/users/{id}", verdict: corrected,
+     why: "documented method is POST /v2/users/{id}, not PATCH"}
+  - {function: deleteUser, method: DELETE, path: "/v2/users/{id}", verdict: carried}
+  - {function: createUsersBatch, method: POST, path: "/v2/users/batch", verdict: carried}
+  - {function: createEvent, method: POST, path: "/v2/events", verdict: carried}
+  - {function: createAnnotation, method: POST, path: "/v2/annotations", verdict: carried}
+  - {function: createEventsBatch, method: POST, path: "/v2/events/batch", verdict: carried}
+  - {function: getBatchJobStatus, method: GET, path: "/v2/batch/{job_id}", verdict: corrected,
+     why: "documented per kind: GET /v2/users/batch/{job_id} and GET /v2/events/batch/{job_id}; no generic /v2/batch"}
+  - {function: getBatchJobErrors, method: GET, path: "/v2/batch/{job_id}/errors", verdict: corrected,
+     why: "documented per kind: /v2/users/batch/{job_id}/errors and /v2/events/batch/{job_id}/errors"}
+  - {function: listSessions, method: GET, path: "/sessions/v2", verdict: carried}
+  - {function: setUserPropertiesV1, method: POST, path: "/users/v1/individual/{uid}/customvars", verdict: carried}
+  - {function: setUserEventsV1, method: POST, path: "/users/v1/individual/{uid}/customevent", verdict: carried}
+  - {function: createSegmentExport, method: POST, path: "/segments/v1/exports", verdict: excluded,
+     why: "D301 — segment export"}
+  - {function: getSegmentExportStatus, method: GET, path: "/segments/v1/exports/{id}", verdict: excluded,
+     why: "D301 — and undocumented: export status is read through /operations/v1/{id}"}
+  - {function: getRecordingBlockRules, method: GET, path: "/settings/recording/v1/blocking", verdict: carried}
+  - {function: getUserEvents, method: GET, path: "/users/v1/individual/{uid}/events", verdict: excluded,
+     why: "D301 — undocumented path; the documented equivalent is the legacy data export GET /api/v1/export/userEvents"}
+  - {function: getUserPages, method: GET, path: "/users/v1/individual/{uid}/pages", verdict: excluded,
+     why: "D301 — undocumented path; the documented equivalent is the legacy data export GET /api/v1/export/userPages"}
+  - {function: getSessionProfile, method: GET, path: "/v2/visit_profile/{id}", verdict: carried}
+  - {function: createSessionProfile, method: POST, path: "/v2/visit_profile", verdict: carried}
+  - {function: updateSessionProfile, method: POST, path: "/v2/visit_profile/{id}", verdict: carried}
+  - {function: deleteSessionProfile, method: DELETE, path: "/v2/visit_profile/{id}", verdict: carried}
+  - {function: listSessionProfiles, method: GET, path: "/v2/visit_profile", verdict: carried}
+  - {function: generateSessionContext, method: POST, path: "/v2/sessions/{session_id}/context", verdict: carried}
+  - {function: generateSessionContextExperimental, method: POST, path: "/v2/sessions/{session_id}/context", verdict: carried}
+  - {function: getSessionEvents, method: GET, path: "/v2/sessions/{session_id}/events", verdict: carried}
+  - {function: getSessionSummary, method: GET, path: "/v2/sessions/{session_id}/summary", verdict: carried}
+
+# In the reference and in no Lexicon call — the NEW surface P4 adds (mostly beta and newer v2).
+new_in_reference:
+  - {tier: beta, method: GET, path: "/v2beta/datasets"}
+  - {tier: beta, method: POST, path: "/v2beta/privacy/elements"}
+  - {tier: beta, method: DELETE, path: "/v2beta/privacy/elements/{id}"}
+  - {tier: beta, method: GET, path: "/v2beta/privacy/elements/{id}"}
+  - {tier: beta, method: GET, path: "/v2beta/privacy/elements"}
+  - {tier: beta, method: POST, path: "/v2beta/privacy/elements/{id}"}
+  - {tier: beta, method: POST, path: "/v2beta/extraction/rules/{id}/archive"}
+  - {tier: beta, method: POST, path: "/v2beta/extraction/rules"}
+  - {tier: beta, method: GET, path: "/v2beta/extraction/rules/{id}"}
+  - {tier: beta, method: GET, path: "/v2beta/extraction/rules"}
+  - {tier: beta, method: POST, path: "/v2beta/extraction/rules/{id}/unarchive"}
+  - {tier: beta, method: PUT, path: "/v2beta/extraction/rules/{id}"}
+  - {tier: beta, method: PATCH, path: "/v2beta/extraction/rules/{id}"}
+  - {tier: v2, method: GET, path: "/v2/events/batch/{job_id}/imports"}
+  - {tier: v2, method: GET, path: "/v2/organization/quotas"}
+  - {tier: v2, method: POST, path: "/v2/sessions/{session_id}/summary"}
+  - {tier: v2, method: GET, path: "/v2/sessions"}
+  - {tier: v2, method: POST, path: "/v2/users/stream"}
+  - {tier: v2, method: GET, path: "/v2/users/batch/{job_id}/imports"}
+  - {tier: v2, method: GET, path: "/v2/users/stream/{request_id}"}
+  - {tier: v2, method: GET, path: "/v2/users"}
+  - {tier: v1, method: GET, path: "/me"}
+  - {tier: v1, method: POST, path: "/operations/v1/{id}/cancel"}
+  - {tier: v1, method: GET, path: "/operations/v1/{id}"}
+  - {tier: v1, method: GET, path: "/operations/v1"}
+  - {tier: v1, method: GET, path: "/segments/v1/{id}"}
+  - {tier: v1, method: GET, path: "/segments/v1"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/domain/history"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/domain"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/geo/history"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/geo"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/privacy/history"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/privacy"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/blocking/history"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/features/history"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/features"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/targeting/history"}
+  - {tier: v1, method: GET, path: "/settings/recording/v1/targeting"}
+  - {tier: v1, method: POST, path: "/settings/recording/v1/privacy:element-block-rules"}
+  - {tier: v1, method: DELETE, path: "/users/v1/individual/{uid}"}
+  - {tier: v1, method: GET, path: "/users/v1/individual/{uid}"}

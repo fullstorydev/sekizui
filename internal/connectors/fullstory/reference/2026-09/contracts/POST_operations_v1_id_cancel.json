@@ -1,0 +1,28 @@
+{
+  "tier": "v1",
+  "method": "POST",
+  "path": "/operations/v1/{id}/cancel",
+  "operation_id": "CancelOperation",
+  "title": "Cancel Operation",
+  "description": "Cancel an in-progress operation using an operation ID\nNot all operations are cancelable since that could leave some system or data in an invalid or partial state.\nCancelable operations are:\n* [Segment-based Exports](../../segments/create-segment-export)",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/operations/cancel-operation/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "The ID of the initiated operation",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {}
+  }
+}

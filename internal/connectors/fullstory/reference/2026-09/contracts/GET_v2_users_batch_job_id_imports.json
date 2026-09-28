@@ -1,0 +1,150 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/users/batch/{job_id}/imports",
+  "operation_id": "GetBatchUserImports",
+  "title": "Get Batch Imported Users",
+  "description": "Get the Fullstory id and user details for successful users imported from a batch user import job.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/users/get-batch-user-imports/",
+  "parameters": [
+    {
+      "name": "job_id",
+      "description": "ID that can be used to check the status and retrieve results for the batch import",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "page_token",
+      "description": "The token that can be used in a request to fetch the next page of results",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "include_schema",
+      "description": "Whether to include schemas in the response.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "boolean"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "123456789",
+              "description": "The Fullstory assigned user ID",
+              "maxLength": 256
+            },
+            "uid": {
+              "type": "string",
+              "example": "xyz123",
+              "description": "The application-specific ID you've given to the user",
+              "maxLength": 256
+            },
+            "display_name": {
+              "type": "string",
+              "example": "Daniel Falko",
+              "description": "The nice-looking name for this user",
+              "maxLength": 256
+            },
+            "email": {
+              "type": "string",
+              "example": "daniel.falko@example.com",
+              "description": "The email address associated with this user",
+              "maxLength": 128
+            },
+            "properties": {
+              "type": "object",
+              "example": {
+                "pricing_plan": "paid",
+                "popup_help": true,
+                "total_spent": 14.55
+              },
+              "description": "Properties that provide additional information about your user.\n - Up to 500 unique properties are allowed.\n - Property names must be a sequence of alphanumeric characters A-Z, a-z, or 0-9 and underscores (\"_\").\n - Property names must start with an alphabetic character (A-Z or a-z).\n - The maximum property name length is 512 characters.\n - Property values may also contain nested objects. Properties within nested objects must still conform to the naming requirements. For nested objects, the property name including the dotted concatenation of all its parent properties must still be under the length limit of 512 characters.\n - Property values have a maximum size of 8192 bytes. If the value for the property is larger than this limit, the property will be rejected.",
+              "maxProperties": 500
+            },
+            "schema": {
+              "example": null,
+              "description": "A mapping from fields to their types, whether inferred automatically or declared in the request.",
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "A mapping of field names to their corresponding types."
+                }
+              }
+            },
+            "type_conflicts": {
+              "example": null,
+              "description": "Any fields that are associated with multiple types.",
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "Any fields that are associated with multiple types."
+                }
+              }
+            }
+          },
+          "description": "Server response for a batch user imported",
+          "required": [
+            "id"
+          ]
+        },
+        "description": "Page of user import responses for the batch import"
+      },
+      "total_records": {
+        "type": "string",
+        "example": "1200",
+        "description": "Total number of records in this batch import"
+      },
+      "next_page_token": {
+        "type": "string",
+        "example": "asd543=",
+        "description": "The token that can be used in a subsequent request to fetch the next page of import results"
+      }
+    },
+    "description": "Server response for retrieving batch users imported",
+    "required": [
+      "results",
+      "total_records"
+    ],
+    "example": {
+      "results": [
+        {
+          "id": "123456789",
+          "uid": "xyz123",
+          "display_name": "Daniel Falko",
+          "email": "daniel.falko@example.com",
+          "properties": {
+            "pricing_plan": "paid",
+            "popup_help": true,
+            "total_spent": 14.55
+          },
+          "schema": null,
+          "type_conflicts": null
+        }
+      ],
+      "total_records": "1200",
+      "next_page_token": "asd543="
+    }
+  }
+}

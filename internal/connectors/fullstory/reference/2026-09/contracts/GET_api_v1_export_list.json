@@ -1,0 +1,73 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/api/v1/export/list",
+  "operation_id": "list-event-exports",
+  "title": "List Event Exports",
+  "description": ":::note\nPlease use the [Segment Export API](../../segments/create-segment-export) to extract data recorded by Fullstory.\n:::\nReturn a list of Data Export bundles\n### Legacy Data Export\nYou can download a collection of session events for your own analysis using Fullstory's [Data Export](https://help.fullstory.com/technical-questions/data-export) feature.\nThe `list` endpoint returns a JSON list of completed data export bundles. Each result provides a `start` and `stop` timestamp of the data contained within the export (in unix seconds) as well as the unique `Id` of the bundle.\nCalling this endpoint will return a list of the first 20 data export bundles whose **end** time is after the given start parameter (sorted from oldest to newest). In general, periodically calling this endpoint with the timestamp of your most recently downloaded bundle will ensure that your system is aware of all finished bundles. If you need to download more than 20 bundles, then simply repeat the call using the timestamp of the last bundle in the returned list.\nData Export is an Enterprise pricing tier add-on. See [pricing page](https://www.fullstory.com/pricing/) for more details.\n### Additional Information\n* [Get Event Export](../get-event-export) * [What is Data Export?](https://help.fullstory.com/technical-questions/data-export) * [Hauser](https://github.com/fullstorydev/hauser) is an open source project for migrating Data Exports into your data warehouse.",
+  "permission": "Architect",
+  "deprecated": true,
+  "servers": [
+    "https://export.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/exports/list-event-exports/",
+  "parameters": [
+    {
+      "name": "start",
+      "description": "The timestamp at which to start searching for results. Use Unix seconds (seconds since Epoch).",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "exports": [
+        {
+          "Start": 1447984800,
+          "Stop": 1448071200,
+          "Id": 123456789
+        },
+        {
+          "Start": 1448071200,
+          "Stop": 1448157600,
+          "Id": 987654321
+        },
+        {
+          "Start": 1448157600,
+          "Stop": 1448244000,
+          "Id": 456789123
+        }
+      ]
+    },
+    "properties": {
+      "exports": {
+        "type": "array",
+        "description": "List of exports matching the criteria",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "int64",
+              "description": "ID of the export"
+            },
+            "start": {
+              "type": "string",
+              "format": "int64",
+              "description": "Starting timestamp of the export. Timestamp is in GMT."
+            },
+            "stop": {
+              "type": "string",
+              "format": "int64",
+              "description": "Ending timestamp of the export. Timestamp is in GMT."
+            }
+          }
+        }
+      }
+    }
+  }
+}

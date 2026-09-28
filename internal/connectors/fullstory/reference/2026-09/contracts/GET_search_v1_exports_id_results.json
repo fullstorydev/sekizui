@@ -1,0 +1,42 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/search/v1/exports/{id}/results",
+  "operation_id": "GetSearchExportResults",
+  "title": "Get Export Results",
+  "description": "This provides a download link for a completed [search export](../../segments/create-segment-export). Only completed, non expired search exports may be downloaded. ### Downloading an export This endpoint returns a URL that can be temporarily used to download the exported data.You can use curl to get the results from this URL: ```bash curl -JO '[location url provided in response]' ``` This will save the export to the name provided in the `Content-Disposition` header, which is based on the name of the segment and the date that the export was created. ### Additional Information * [Get Operation Status](../../operations/get-operation-status) * [Create Segment Export](../../segments/create-segment-export) * [Export Fields](../../segments/export-fields)",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/search/get-search-export-results/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "Unique identifier of the search export.\nThis ID is typically retrieved as a result of a SEARCH_EXPORT operation.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "location": "https://storage.googleapis.com/fullstoryapp-search-export/erdmyIOWv2WtgEVDugRyYRrvUp8UaJZcpblJxDb29VU?\u003csignature-params\u003e",
+      "expires": "2020-10-22T17:06:18.658287819Z"
+    },
+    "properties": {
+      "location": {
+        "type": "string",
+        "description": "Location provides a URI pointing to the export file.\nThe URI is only valid until expires time."
+      },
+      "expires": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The UTC time at which the location link expires."
+      }
+    }
+  }
+}

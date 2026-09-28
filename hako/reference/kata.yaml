@@ -1,0 +1,136 @@
+# hako — the reference CONNECTOR, as configuration.
+#
+# **THIS IS THE BOX AND `internal/connectors/kata` IS WHAT IS IN IT (D244).** A
+# driver is the Go type; a connector is the deliverable an operator installs —
+# the driver plus its target, its limits, its grant, its lens, its guard and its
+# schemas (D175). Everything below is that packaging, for the one driver this
+# tree ships as a reference.
+#
+# **IT IS A WALKING SKELETON AND IT IS MEANT TO GROW.** Today it governs one
+# target with one principal. Each phase that adds an obligation to a connector
+# author adds it here first, which makes a diff on this file the visible signal
+# that what a contributor owes has changed — the review instrument the
+# governance half has never had, because no compiler checks that a grant is
+# narrow.
+#
+# Loaded and validated by `reference_test.go` through the REAL boot check, and
+# cross-checked against the driver's actual action list — so a grant naming an
+# action `kata` does not implement fails here rather than at somebody's deploy.
+
+# --- the target, with its operational limits ON it (D142) --------------------
+targets:
+  - ref: kata:reference
+    kind: kata
+    tenant: reference
+    residency: eu
+    base_url: https://kata.invalid
+    # file://, not env:// — an environment variable declares no VERSION, and the
+    # default credential policy refuses an unversioned credential off bare metal
+    # (D111, D153). It is also what Helm and SOPS terminate as (D103).
+    credential: file:///etc/sekizui/kata-reference
+    limits:
+      # ON THE TARGET so an operator can narrow it without a redeploy, under a
+      # deployment ceiling they may never widen (D108's shape, D142's ruling).
+      rate_per_hr: 500
+      max_lifetime_s: 3600
+      breaker_trip: 5
+    # A SOURCE HALF: kata's rows, which `sources:` below polls (P5 step 13).
+    settings: {kata_rows: "3"}
+
+# --- a SOURCE: the poll the grant below allows, actually scheduled -----------
+#
+# Until P5 step 13 the reference granted `source:kata:reference` the poll and
+# never declared the source that runs it — half a pattern, found by deriving
+# what a contributor must see. Polled only under `-mode=ingest`.
+sources:
+  - {target: kata:reference, every_s: 60, limit: 10}
+
+# --- a REFINEMENT: a rule the connector ships, IMPOSED on one audience -------
+#
+# kata ships `kata.read_receipt` in its reflexes.yaml, available and never
+# imposed until a deployment names it (D297, D299). Staged by audience (D298):
+# the reference agent receives a receipt beside every read, and nobody else.
+refinements:
+  - {rule: kata.read_receipt, target: kata:reference, for: [agent:reference]}
+
+# --- a NARROW grant ----------------------------------------------------------
+grants:
+  - principal: agent:reference
+    allow:
+      # EVERY CAPABILITY NAMES ITS TARGET. Omit it and the capability covers
+      # every target of this kind — including ones added later by somebody who
+      # never read this grant, which is invisible in review because the line
+      # that grants it does not change.
+      - {action: kata.read, target: kata:reference}
+      - {action: kata.create_issue, target: kata:reference}
+      # THE AFFERENT CAPABILITY, granted to the SOURCE principal rather than to
+      # the agent. `source:<target ref>` is derived from the target, so this
+      # line reads "the poller for kata:reference may poll kata:reference" and
+      # cannot name a principal that corresponds to nothing.
+  - principal: source:kata:reference
+    allow:
+      - {action: kata.poll, target: kata:reference}
+  # A PRESET, THE CONNECTOR'S OWN SUGGESTION (D327). `kata-presets.yaml` beside
+  # this file is a symlink to kata's presets.yaml — dropped in, as a deployment
+  # does — and this line grants `kata.viewer` by name. The loader expands it to
+  # the preset's fixed list, so it is exactly `{action: kata.read, ...}`, and the
+  # record names the preset. Still names its target: a preset is a list of
+  # ACTIONS, and what it may touch is this grant's to say.
+  - principal: agent:reference-viewer
+    allow:
+      - {preset: kata.viewer, target: kata:reference}
+
+# --- an IMPOSED lens, naming what this driver's payload carries --------------
+shin:
+  - name: kata-reference-narrowed
+    enabled: true
+    # Imposed rather than requestable: the consumer does not get to ask for more
+    # (D84's ceiling-plus-request shape). Empty would also mean imposed — the
+    # one place in this configuration where the safe default is the restrictive
+    # one, because a lens that silently became optional would disclose.
+    mode: imposed
+    # KEYED ON THE PAYLOAD TYPE (D41, D88) — what `kata.read` declares as its
+    # OutputType and what `payload_schemas` below is keyed on. The schema URI is
+    # a different namespace and belongs in the driver's OutputSchema.
+    type: kata.read_result.v1
+    # **A WITHHOLD-LIST, AND THAT DIRECTION IS WORTH KNOWING BEFORE YOU COPY
+    # IT.** A field a future driver version adds is DISCLOSED by default, not
+    # withheld — so extending a payload is a disclosure decision somebody has to
+    # remember to make. D42 and D292 are the mitigation: every path here is
+    # checked against the type's registered schema at boot, so a lens naming a
+    # field its type cannot carry fails the boot rather than quietly withholding
+    # nothing.
+    #
+    # **THAT SENTENCE WAS FALSE UNTIL D292, AND THIS LENS WAS THE PROOF.** It
+    # withheld `secret_note`, which `kata.read_result.v1` has never carried, and
+    # booted: `withholds` were checked against nothing. The reference withheld
+    # nothing for as long as it existed. It now names a field the type carries.
+    withholds: [user]
+    # `because` is not decoration: a lens whose reason is unrecorded is one
+    # nobody dares remove and nobody can justify.
+    because: "the reference payload carries a field an agent has no use for, and the point of the box is that somebody decided that rather than nobody"
+
+# --- an anzen ceiling, naming the IRREVERSIBLE action ------------------------
+anzen:
+  - name: kata-no-destruction
+    enabled: true
+    mode: enforce
+    # Checked BEFORE policy, so this holds even where a grant permits it — and
+    # `kata.delete_project` is implemented and deliberately not granted above.
+    # A grant is written by whoever needs a capability; a ceiling is written
+    # once by whoever carries the blast radius, and that asymmetry is the whole
+    # of D71.
+    #
+    # `applies_to` omitted means EVERY principal, which is right for a
+    # blocklist: an irreversible action nobody should perform is not a
+    # per-principal question.
+    forbids: ["kata.delete_*"]
+
+# --- the payload schema: THE CONNECTOR'S, NOT THIS FILE'S (D279) ------------
+#
+# kata.row.v1 and kata.read_result.v1 are declared by the kata driver itself,
+# in `internal/connectors/kata/schemas.yaml`, embedded beside the code that emits
+# them. A declared OutputType whose connector ships no schema is refused at
+# boot naming the connector — and a schema written HERE for a connector's type
+# is refused too: one type, one owner. The lens above still resolves its field
+# paths against that schema (D42); the deployment's part is the lens.

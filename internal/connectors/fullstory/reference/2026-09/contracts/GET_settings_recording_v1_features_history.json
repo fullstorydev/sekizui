@@ -1,0 +1,151 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/settings/recording/v1/features/history",
+  "operation_id": "GetRecordingFeaturesHistory",
+  "title": "Get Recording Features History",
+  "description": "Returns a list of versions, each denoting a set of the Recording Features Settings. Every time these settings are modified, a new version is created. This endpoint allows for paging through the history of these settings for audit purposes.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/settings/get-recording-features-history/",
+  "parameters": [
+    {
+      "name": "paginationToken",
+      "description": "The token to start the page at. The default is the most recent version of settings.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "The max number of returned versions. The default is 20 and the max is 100.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    {
+      "name": "platform",
+      "description": "Determines which platform to show settings from - `web` or `mobile`. Defaults to `web`.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "versions": [
+        {
+          "enabled": true,
+          "consoleWatcher": true,
+          "ajaxWatcher": true,
+          "resourceUploading": false,
+          "recordingShutoff": false,
+          "metadata": {
+            "lastUpdated": "2021-05-12T15:16:10.268269Z",
+            "lastUpdatedBy": "bob@example.com",
+            "created": "2020-09-08T15:57:20.830Z",
+            "createdBy": "bob@example.com"
+          },
+          "clientSideRageClick": false
+        },
+        {
+          "enabled": true,
+          "consoleWatcher": true,
+          "ajaxWatcher": true,
+          "resourceUploading": false,
+          "recordingShutoff": false,
+          "metadata": {
+            "lastUpdated": "2021-05-12T15:15:53.309243Z",
+            "lastUpdatedBy": "bob@example.com",
+            "created": "2020-09-08T15:57:20.830Z",
+            "createdBy": "bob@example.com"
+          },
+          "clientSideRageClick": true
+        }
+      ],
+      "next_pagination_token": "v17861a0f56b"
+    },
+    "properties": {
+      "versions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "example": {
+            "enabled": true,
+            "consoleWatcher": true,
+            "ajaxWatcher": true,
+            "resourceUploading": false,
+            "recordingShutoff": false,
+            "metadata": {
+              "lastUpdated": "2021-05-12T15:16:10.268269Z",
+              "lastUpdatedBy": "Bob (bob@example.com)",
+              "created": "2020-09-08T15:57:20.830Z",
+              "createdBy": "jane@example.com"
+            },
+            "clientSideRageClick": false
+          },
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "whether recording is enabled at all"
+            },
+            "consoleWatcher": {
+              "type": "boolean"
+            },
+            "ajaxWatcher": {
+              "type": "boolean"
+            },
+            "resourceUploading": {
+              "type": "boolean"
+            },
+            "recordingShutoff": {
+              "type": "boolean",
+              "description": "Indicates if all recording has been shut off by FS personnel, usually via admin pages"
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "lastUpdated": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this entity was last updated."
+                },
+                "lastUpdatedBy": {
+                  "type": "string",
+                  "description": "Who made the last update to this entity."
+                },
+                "created": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this entity was first created."
+                },
+                "createdBy": {
+                  "type": "string",
+                  "description": "Who first created this entity."
+                }
+              },
+              "title": "This is a public-facing semi-duplicate of protoauditstore.AuditMetadata"
+            },
+            "clientSideRageClick": {
+              "type": "boolean",
+              "description": "Indicates that client side events should or should not be emitted"
+            }
+          }
+        }
+      },
+      "nextPaginationToken": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,552 @@
+syntax = "proto3";
+
+package sekizui.v1;
+
+import "google/protobuf/struct.proto";
+import "sekizui/v1/command.proto";
+import "sekizui/v1/core.proto";
+import "sekizui/v1/decision.proto";
+import "sekizui/v1/envelope.proto";
+import "sekizui/v1/seiren.proto";
+
+
+// service.proto — the complete serving surface.
+//
+// DESIGN.md references: §4.1.1, §4.4, §4.6.4, §4.9, D9, D24.
+//
+// ONE TRANSPORT. gRPC over mTLS, because mTLS gives caller identity natively
+// (D9) and identity is the foundation everything else rests on. The only other
+// listener is plain HTTP for /healthz, /readyz, and /metrics — which cannot be
+// gRPC because platform probes and scrapers expect HTTP.
+//
+// IDENTITY IS NOT IN THE REQUEST MESSAGES.
+//   - Caller comes from the verified mTLS peer certificate. It is never claimed
+//     in a payload field, because a payload field can be lied about.
+//   - Subject IS claimed (in metadata header `sekizui-subject`), and is therefore
+//     checked against the caller's `may_speak_for` grant (§4.4.1). This is the
+//     confused-deputy defence: a mesh able to reach Sekizui must not be able to
+//     impersonate arbitrary agents.
+//
+// NOT PRESENT, DELIBERATELY: any webhook-shaped inbound route. An actuator RPC
+// and a webhook differ in threat model, not direction (§4.2.2) — vendor-shaped
+// unauthenticated payloads are gone for good.
+
+// GatewayService is the command/query/subscribe surface served by
+// `sekizui-gateway` (§5.3). Named for the deployment rather than the product so
+// that if `sekizui-ingest` ever exposes RPCs it becomes IngestService, keeping the
+// deployment split visible in the API.
+service GatewayService {
+  // ---- Efferent (motor) ----
+
+  // Execute one command against one target. The core governed pathway:
+  // verify -> authorise -> resolve -> rate limit -> act -> audit.
+  //
+  // Reflexes call the same internal path. There is no fast lane (D18).
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+
+  // ---- Afferent (sensory) ----
+
+  // Read-through query against a target. Governed identically to Execute —
+  // an agent running an unbounded scan across BigQuery is a data-exfiltration
+  // path, so reads carry the same capability checks plus result-size limits
+  // (§4.1.1).
+  rpc Query(QueryRequest) returns (QueryResponse);
+
+  // Server-streaming event subscription.
+  //
+  // This is how anything outside the process receives the bus in v1.
+  //
+  // Delivery is AT-MOST-ONCE (D24), honestly: a dropped connection loses the
+  // events sent during the gap. No acks, no cursors, no replay — because
+  // pretending otherwise with an in-process bus behind it would be a lie.
+  //
+  // Forward compatibility: when JetStream lands (P7/v1.3) this RPC stays as a
+  // facade and silently gains at-least-once plus replay. Consumers do not change.
+  // If a consumer ever needs to know which delivery semantics it is getting, the
+  // Bus abstraction has leaked and the interface is wrong (§4.6.4 item 3).
+  rpc Subscribe(SubscribeRequest) returns (stream SubscribeResponse);
+
+  // ---- Jobs: the fourth access pattern (D247, D249) ----
+
+  // Start a governed asynchronous job.
+  //
+  // **A FOURTH PATTERN BECAUSE THE OTHER THREE CANNOT CARRY IT** (§4.1.1).
+  // "Review five sessions for these behaviours" is too slow and too large for
+  // a Query, whose result is one synchronous response; it is a READ, so it is
+  // not a Command; and a Subscribe is a standing stream rather than something
+  // with an end. What is missing is a request that has a caller, has a defined
+  // end, and OUTLIVES THE CONNECTION THAT MADE IT.
+  //
+  // It carries a `Command` rather than a new vocabulary, because a job is a
+  // governed action with a longer life and not a different kind of thing —
+  // same action names, same grants, same ceilings. D18 forbids a second path
+  // and this is deliberately not one.
+  //
+  // **A RECURRING JOB IS THIS WITH CONFIGURATION AS THE CALLER (D249).** The
+  // scheduled trigger reaches the same runner through the same admission; a
+  // poller is not a second subsystem.
+  rpc StartJob(StartJobRequest) returns (StartJobResponse);
+
+  // Cancel a running job, or a recurrence.
+  //
+  // **CANCELLING MUST STOP THE WORK, NOT JUST THE SUBSCRIPTION** (P3 criterion
+  // 16). A caller who unsubscribes from a job that keeps running has bought
+  // nothing: the credential it borrowed stays borrowed and the vendor keeps
+  // being billed for output nobody will read.
+  rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+
+  // How is my job going?
+  //
+  // **THE CALLER'S HALF OF P3 CRITERION 15, AND IT EXISTS BECAUSE THE AUDIT
+  // RECORD IS NOT IT (D254).** The criterion asks that finished, failed and
+  // still-running be distinguishable AND that a caller not have to infer the
+  // answer from silence. The decision record answers the first for an
+  // OPERATOR; there is no RPC that reads the audit log, so a caller holding a
+  // `decision_id` could resolve nothing and a job whose end it could not see
+  // is the melt in a different coat.
+  //
+  // **NOT A GRANT — A JOB IS YOUR OWN.** Authorisation is identity equality
+  // with the principal recorded on the job's intent row, which is why this
+  // verb takes no capability and appears in no catalog. A grant would be the
+  // wrong instrument: it would let an operator write "may read jobs", which
+  // means "may read ANYBODY's jobs", and there is no legitimate reading of
+  // that a deployment would want.
+  //
+  // **AN UNKNOWN JOB AND SOMEBODY ELSE'S JOB ANSWER IDENTICALLY**, so this is
+  // not an oracle for which job ids exist. The audit log tells the two apart
+  // for whoever is accountable; the caller is told neither.
+  rpc JobStatus(JobStatusRequest) returns (JobStatusResponse);
+
+  // What did my job produce?
+  //
+  // **A JOB'S RESULTS ARE ADDRESSED TO ITS CALLER, NOT PUBLISHED (D267).**
+  // D247 put them on the shared bus, where every principal whose subscribe
+  // grant matched received another principal's requested data — what it asked
+  // for, and volume it chose — and where, once reflexes arm, a read-only caller
+  // could trigger writes by starting jobs. They are buffered for this caller
+  // instead, lensed per delivery as a subscription is.
+  //
+  // **ATTACH AFTER STARTING.** The results are held from the moment StartJob
+  // returns, so the subscribe-before-start ordering at-most-once forced on a
+  // bus reader (D24) does not apply. **THE STREAM ENDS WHEN THE JOB DOES** —
+  // the end a bus subscription could never give — and JobStatus then says how.
+  //
+  // Authorised as JobStatus is, by identity equality with the job's owner: an
+  // unknown job and somebody else's are answered identically (NOT_FOUND), and
+  // the second is recorded. One reader per job; results nobody collects are
+  // dropped ten minutes after the job ends, and the drop is logged.
+  rpc JobResults(JobResultsRequest) returns (stream JobResultsResponse);
+
+  // ---- Introspection ----
+
+  // What may this principal do?
+  //
+  // Derived from the SAME grant data the enforcer reads (§4.9 property 1). A
+  // separately maintained list would drift, and then agents get told about tools
+  // that deny — burning turns and confusing the model.
+  //
+  // Two callers, two uses:
+  //   - agents, at runtime: choose among available capabilities
+  //   - reflex config loading, at boot: validate a fixed choice (§4.11.4b)
+  rpc Describe(DescribeRequest) returns (DescribeResponse);
+}
+
+// ---------------------------------------------------------------------------
+
+message ExecuteRequest {
+  Command command = 1;
+}
+
+message ExecuteResponse {
+  CommandResult result = 1;
+}
+
+message QueryRequest {
+  // e.g. "jira.search", "bigquery.query", "fullstory.get_session".
+  string action = 1;
+
+  string target_ref = 2;
+
+  google.protobuf.Struct args = 3;
+
+  // Caller-requested cap. The effective limit is min(this, granted max_results),
+  // so a caller can ask for less but never for more.
+  uint32 max_results = 4;
+
+  // Opaque continuation token from a previous QueryResponse.
+  string page_token = 5;
+
+  // Shin lens this consumer selects for itself (D84).
+  //
+  // SELECTED BY NAME, NEVER COMPOSED. A consumer chooses among lenses an operator
+  // declared and reviewed — the same model D46 uses for MCP tools, for the same
+  // reason: what is not declared is not selectable. Naming an unknown or
+  // non-requestable lens is REFUSED rather than ignored.
+  //
+  // The imposed ceiling applies regardless, and a selection can only narrow
+  // further. There is no value here that widens what arrives.
+  string lens = 6;
+}
+
+message QueryResponse {
+  string decision_id = 1;
+  Status status = 2;
+
+  repeated google.protobuf.Struct rows = 3;
+
+  string next_page_token = 4;
+
+  // True when results were cut short by a granted limit rather than exhausted.
+  //
+  // Explicit because a silently truncated result set reads as a complete one, and
+  // an agent reasoning over a truncated set will reach confident wrong
+  // conclusions.
+  bool truncated = 5;
+
+  string reason = 6;
+
+  // Names every shin lens that shaped these rows, imposed and selected alike.
+  //
+  // REPORTED, NOT SILENT. A consumer that receives four fields where it expected
+  // nine must be able to tell "a lens removed them" from "the data was not
+  // there" — and an operator debugging a support ticket needs to know WHICH lens
+  // without reading config.
+  repeated string applied_lenses = 7;
+
+  // WHICH STAGE refused this read, when it was refused (D135, D155).
+  //
+  // `CommandResult` has carried this since D135 and `QueryResponse` did not,
+  // which is the same asymmetry D155 is about: reads were governed by fewer
+  // stages AND could not say which one refused them. §4.1.1's rule is that the
+  // two planes are "distinguishable in policy and audit, not differently
+  // governed", and a caller told only STATUS_DENIED about a read cannot tell a
+  // missing grant from a suspended principal from an anzen rule from a
+  // credential somebody revoked twenty minutes ago.
+  //
+  // Unspecified on an allowed read.
+  RefusedBy refused_by = 8;
+
+  // The SEIREN (精錬) beside the rows: what the `refines:` rules imposed on this
+  // caller made of the WHOLE result, before any paging or response budget
+  // (D297, D300, D317). Absent when no rule is imposed. `rows` stay silver.
+  Seiren seiren = 9;
+}
+
+message SubscribeRequest {
+  // Subject filters, e.g. ["sekizui.enriched.>", "sekizui.raw.jira.>"].
+  // Empty means everything the principal is granted.
+  //
+  // Stage prefixes are configured, not fixed (D43).
+  repeated string subjects = 1;
+
+  // Optional payload type filter, e.g. ["fullstory.rage_click.v1"].
+  repeated string types = 2;
+
+  // Optional residency filter. A consumer in a US region can decline
+  // EU-resident envelopes rather than receiving and then having to drop them.
+  string residency = 3;
+
+  // Include the projection field when present (§4.6.2). Off by default because
+  // projections cost bytes that stream consumers may not want.
+  bool include_projection = 4;
+
+  // Shin lens this consumer selects for its deliveries (D84).
+  //
+  // Same rule as QueryRequest.lens: selected by name from lenses an operator
+  // declared, never composed per request. The imposed ceiling applies to every
+  // envelope regardless, and a selection can only narrow further.
+  string lens = 5;
+}
+
+// SubscribeResponse wraps each streamed envelope.
+//
+// The wrapper is not ceremony. Under at-most-once (D24) a consumer otherwise has
+// NO WAY to learn that it missed events — silent loss is the worst property of
+// the v1 bus. This makes loss VISIBLE, which is the honest thing to offer instead
+// of reliability we do not have. It also leaves room for stream-level signals to
+// be added without breaking consumers.
+message SubscribeResponse {
+  // Unset on a heartbeat.
+  Envelope envelope = 1;
+
+  // Keepalive. Lets a consumer distinguish "idle" from "connection dead" without
+  // a separate mechanism.
+  bool heartbeat = 2;
+
+  // Best-effort count of envelopes dropped for this subscription since the last
+  // message — slow consumer, or bounded-buffer overflow.
+  //
+  // Does not make delivery reliable. Makes it auditable.
+  uint64 dropped = 3;
+
+  // Reserved for the JetStream upgrade (P7): opaque position a consumer may
+  // present to resume. Always empty under at-most-once, which is exactly why
+  // consumers should read it now and get resumption for free later.
+  string resume_token = 4;
+}
+
+message DescribeRequest {
+  // Principal to describe. Empty means the effective identity of this request —
+  // the common case for an agent asking "what can I do?".
+  //
+  // Naming another principal requires a grant to do so; otherwise an agent could
+  // enumerate the whole fleet's permissions.
+  string principal = 1;
+}
+
+message DescribeResponse {
+  string principal = 1;
+
+  // Effective capability set: intersection of caller and subject grants (D7),
+  // with constraints inlined into each description for LLM consumption.
+  repeated Capability capabilities = 2;
+
+  // Principals this one may act on behalf of (§4.4.1). Empty for leaf principals
+  // such as agents and reflexes.
+  repeated string may_speak_for = 3;
+
+  // Registered payload schemas visible to this principal, as
+  // type -> schema URI. Lets a consumer fetch the shape of what it will receive
+  // (D40) rather than inferring it from examples.
+  map<string, string> payload_schemas = 4;
+
+  // Shin lenses this principal may SELECT (D84). Selecting one narrows further;
+  // none of them can widen what arrives.
+  repeated LensInfo available_lenses = 5;
+
+  // The imposed ceiling in force for this principal — lenses it cannot decline.
+  //
+  // REPORTED, NOT HIDDEN. A consumer that cannot see its own ceiling will keep
+  // asking why a field never arrives, and the honest answer is in configuration
+  // somebody else wrote. Naming the lens and its rationale turns a mystery into
+  // a conversation with a named owner.
+  repeated LensInfo imposed_lenses = 6;
+
+  // Capabilities an anzen guard WITHHELD, with the rule that withheld each.
+  //
+  // **AN ABSENCE WITH NO EXPLANATION IS THE DEFECT THIS FIXES (CONTRACTS 64).**
+  // `anzen.Guards.Forbids` returns the guard's name and the catalog discarded it
+  // with `_`, so an agent saw a capability simply missing — indistinguishable
+  // from one it was never granted, and unanswerable without reading
+  // configuration somebody else wrote. Naming the rule is §5.4's argument about
+  // refusals ("a denial that records *why* is what makes the system reviewable
+  // rather than merely restrictive") applied to the catalog, and it is the same
+  // reasoning `imposed_lenses` above already carries for shin.
+  //
+  // **IT DISCLOSES THE RULE'S NAME AND NOTHING ELSE.** Not its patterns, not its
+  // severity, not what else it forbids: the caller learns why THIS capability is
+  // absent for THEM — which is what stops them asking — and a name is something
+  // to take to whoever owns the guard. A guard is a ceiling no grant can exceed
+  // (D71), so this is not a grant to widen.
+  repeated WithheldCapability withheld = 7;
+
+  // Every refinement imposed on this principal, from the same compiled list
+  // the gateway serves (D302) — so discovery cannot advertise a seiren that
+  // does not arrive, or omit one that does. Empty when none is imposed.
+  repeated ImposedRefinement imposed_refinements = 8;
+}
+
+// WithheldCapability is one capability an anzen guard kept out of the catalog.
+// ImposedRefinement is one `refines:` rule imposed on the described principal
+// (D298, D302): configuration decides it, so discovery must say it — a seiren
+// never arrives undeclared.
+message ImposedRefinement {
+  // The connector's rule, e.g. "fullstory.login".
+  string rule = 1;
+
+  // The target whose results it refines.
+  string target_ref = 2;
+
+  // The seiren type it writes, and where its schema is fetched (D40).
+  string seiren_type = 3;
+  string schema_uri = 4;
+
+  // The one key of that type it writes.
+  string key = 5;
+
+  // Whether it looks anything up — spending the caller's quota (D298). Always
+  // false in P4, whose engine only derives (D317); P5's lookups set it.
+  bool lookups = 6;
+}
+
+message WithheldCapability {
+  string action = 1;
+  string target_ref = 2;
+
+  // The anzen rule that withheld it.
+  string guard = 3;
+}
+
+// LensInfo describes one shin lens to a consumer.
+message LensInfo {
+  string name = 1;
+
+  // Payload type this lens applies to, or empty for every type.
+  string type = 2;
+
+  // Field allow-list. Empty means every field survives, subject to withholds.
+  repeated string fields = 3;
+
+  // Fields removed unconditionally. Wins over `fields`.
+  repeated string withholds = 4;
+
+  // Cap on ONE payload's serialised size. Not a rate limit (§4.3.4).
+  uint32 max_bytes = 5;
+
+  // Why this lens exists. REQUIRED in configuration, because a lens removes
+  // data and "why does this consumer never see that field" must be answerable
+  // without finding whoever wrote it.
+  string because = 6;
+}
+
+// ---------------------------------------------------------------------------
+
+message StartJobRequest {
+  // The action, target and arguments, exactly as Execute takes them.
+  Command command = 1;
+}
+
+message StartJobResponse {
+  // The job's identifier, and **ALSO THE CAUSATION ROOT OF EVERY ENVELOPE IT
+  // PRODUCES** — which is why no new envelope field was added for it.
+  //
+  // `Causation.root_id` already means "the originating thing at the root of
+  // this chain", and for a job that is the job. A caller subscribes and
+  // filters on the root; a polled event, which has no such origin, remains
+  // its own root (see internal/translate). One field, two honest readings,
+  // rather than a `job_id` extension attribute that would mean nothing on
+  // three quarters of the envelopes carrying it.
+  string job_id = 1;
+
+  // The decision that admitted it, so a caller can cite the row that says
+  // why they were allowed to start it (D201).
+  //
+  // POPULATED ON A REFUSAL TOO, which is the half that matters: a caller told
+  // only that no job started cannot cite the row that says why.
+  string decision_id = 2;
+
+  // The outcome of ASKING, which is not the outcome of the job (D250).
+  //
+  // **AN EMPTY `job_id` IS A NEGATIVE ASSERTION, AND THIS REPOSITORY HAS
+  // ALREADY PAID FOR ONE.** D138 found `STATUS_INVALID_ARGUMENT` missing
+  // because an acceptance assertion written as `!= STATUS_OK` was satisfied by
+  // the absence of an answer; "no job id came back" is the same shape. So a
+  // refusal says so positively, and D135's rule — a deliberate refusal is a
+  // result with a mapped status rather than a transport error — reaches this
+  // verb as it reaches the other two.
+  Status status = 3;
+
+  // Why, in words an operator can act on. Empty when a job started.
+  string reason = 4;
+
+  // WHICH STAGE refused it (D135, D155).
+  //
+  // `QueryResponse` gained this for exactly this reason and the argument
+  // transfers unchanged: a caller told only STATUS_DENIED cannot tell a
+  // missing grant from a suspended principal from an anzen rule from a
+  // credential somebody revoked twenty minutes ago. **A JOB MAKES IT WORSE
+  // RATHER THAN EQUAL**, because the window between authorisation and use is
+  // the widest in the system (P3 criterion 17) — so the stage that refused is
+  // the caller's only clue about whether asking again in a minute could
+  // possibly work.
+  //
+  // Unspecified when a job started.
+  RefusedBy refused_by = 5;
+}
+
+message JobStatusRequest {
+  string job_id = 1;
+}
+
+message JobResultsRequest {
+  string job_id = 1;
+
+  // Shin lens this caller selects for its results (D84) — the same rule as
+  // SubscribeRequest.lens: chosen by name from lenses an operator declared,
+  // never composed per request, and only ever narrowing the imposed ceiling.
+  string lens = 2;
+
+  // Include the projection when one applies (§4.6.2, D269) — as
+  // SubscribeRequest.include_projection. Off by default: a projection costs
+  // bytes a caller may not want, and it is shaped only for a caller who asked.
+  bool include_projection = 3;
+}
+
+// JobResultsResponse wraps one result, as SubscribeResponse wraps a delivery.
+message JobResultsResponse {
+  Envelope envelope = 1;
+}
+
+// JobState is how a job is going, in the three states P3 criterion 15 requires
+// be distinguishable.
+enum JobState {
+  // Unknown: no such job, or not yours. **THE TWO ARE DELIBERATELY ONE
+  // VALUE** — separating them would answer "does this job id exist" for a
+  // caller with no business knowing, which is an enumeration oracle built out
+  // of politeness.
+  JOB_STATE_UNSPECIFIED = 0;
+
+  JOB_STATE_RUNNING = 1;
+
+  // Finished, whether or not it produced anything. `events` is what makes a
+  // job that found nothing legible as a success rather than as a silence.
+  JOB_STATE_FINISHED = 2;
+
+  JOB_STATE_FAILED = 3;
+}
+
+message JobStatusResponse {
+  JobState state = 1;
+
+  // How many envelopes reached the bus. Meaningful on a FAILED job too: one
+  // that published four and then fell over published four (D177).
+  int32 events = 2;
+
+  // The decision that admitted the job, so a caller can cite the row. Empty
+  // when the state is UNSPECIFIED, which is the same answer for an unknown
+  // job and somebody else's.
+  string decision_id = 3;
+
+  // Why it failed, in words the caller can act on. Empty otherwise.
+  string reason = 4;
+}
+
+message CancelJobRequest {
+  string job_id = 1;
+
+  // REQUIRED. A cancellation with no reason is an unexplained stop, and the
+  // next person to look at the audit log is the one who pays for that —
+  // the same rule D146 applies to suspending a grant.
+  string reason = 2;
+
+  // What to cancel. **THE DISTINCTION IS LOAD-BEARING FOR A RECURRENCE
+  // (D249)**: an operator who meant to stop the schedule and stopped only the
+  // run in flight has stopped nothing, and will believe otherwise until the
+  // next tick.
+  CancelScope scope = 3;
+}
+
+// CancelScope distinguishes this run from every future one.
+enum CancelScope {
+  // Unspecified is treated as THIS_RUN — the narrower action, because the
+  // safe reading of an ambiguous cancellation is the one that stops less and
+  // can be repeated, not the one that silently ends a schedule.
+  CANCEL_SCOPE_UNSPECIFIED = 0;
+
+  // Stop the run in flight. A recurrence continues.
+  CANCEL_SCOPE_THIS_RUN = 1;
+
+  // Stop the run in flight AND the recurrence. Meaningless for a one-shot
+  // job, and refused there rather than silently equivalent.
+  CANCEL_SCOPE_RECURRENCE = 2;
+}
+
+message CancelJobResponse {
+  // False when there was nothing to cancel — a job already finished, or an id
+  // nobody minted. NOT an error: "it already stopped" is the outcome the
+  // caller wanted, and reporting it as a failure invites a retry loop.
+  bool cancelled = 1;
+
+  // What happened, in words an operator can act on.
+  string detail = 2;
+}

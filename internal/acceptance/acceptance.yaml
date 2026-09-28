@@ -1,0 +1,686 @@
+# The acceptance configuration: everything P0 can express, in one document.
+#
+# Deliberately exercises each shape rather than being minimal — this file plus
+# acceptance_test.go is P0's graduation evidence, and a capability absent here
+# is a capability nobody proved.
+
+stages: [raw, enriched, triaged, judged]
+llm_stages: [judged]
+
+targets:
+  # **THE SUITE'S HOME CLASS IS `us` (D326, CONTRACTS 152)** because the one real
+  # org it reaches, EXAMPLE, lives in Fullstory's NA1 data centre. Until D326 every
+  # target here was declared `eu`, so the live Fullstory targets carried a class
+  # the suite knew was false and passed only because the ceiling agreed with the
+  # lie. The kata targets have no location and follow the home class; kata:beta
+  # is the one OTHER-class target, and kata:tokyo the third.
+  #
+  # `kata_rows` GIVES THIS TARGET A SOURCE HALF, and without it the reference
+  # driver is idle by design — "an ordinary source has a size, and without one
+  # this source is simply idle". P3 step 31 polls it for a caller's job. Read
+  # ONLY by `kata.Poll`, so no step that executes or queries against
+  # kata:alpha is affected; the first version of step 31 left it out and the
+  # job ran correctly, polled an empty table, and delivered nothing.
+  - {ref: kata:alpha, kind: kata, tenant: alpha, residency: us, base_url: https://alpha.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {kata_rows: "3"}}
+  - {ref: kata:beta,  kind: kata, tenant: beta,  residency: eu, base_url: https://beta.invalid,  credential: env://SEKIZUI_ACCEPT_TOK}
+
+  # **THREE SOURCES WHOSE ENDINGS DIFFER, FOR P3 STEP 32 (criterion 15).** The
+  # three states must be told apart from the log, and two of them publish
+  # nothing — so the pair that needs distinguishing cannot be built from one
+  # target with one behaviour.
+  #
+  # `kata:empty` declares no `kata_rows`, which makes it IDLE BY DESIGN rather
+  # than broken: "an ordinary source has a size, and without one this source is
+  # simply idle". That is the arm the other two exist to be told apart from.
+  - {ref: kata:empty, kind: kata, tenant: empty, residency: us, base_url: https://empty.invalid, credential: env://SEKIZUI_ACCEPT_TOK}
+  - {ref: kata:panicky, kind: kata, tenant: panicky, residency: us, base_url: https://panicky.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {kata_rows: "3", _misbehave_panic: "true"}}
+  # BLOCKS INSIDE THE BORROW, so "did this job reach the driver" is answerable
+  # by looking rather than by racing it. A fast source finishes before the step
+  # can observe anything, which made step 35 unable to tell a bound checked
+  # BEFORE the work from one checked after it — the exact distinction
+  # criterion 18 is about.
+  # A SOURCE THAT DECLARES IT CANNOT RE-READ ITS WINDOW (P3 step 12, D275), so
+  # an interrupted poll against it must end in a recorded gap, not a silence.
+  - {ref: kata:gap, kind: kata, tenant: gap, residency: us, base_url: https://gap.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {kata_rows: "3", kata_recovery: "unable"}}
+  - {ref: kata:budgeted, kind: kata, tenant: budgeted, residency: us, base_url: https://budgeted.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {kata_rows: "4", _misbehave_block: "true"}}
+  - {ref: kata:slow, kind: kata, tenant: slow, residency: us, base_url: https://slow.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {kata_rows: "3", _misbehave_block: "true"}}
+
+  # **A METERED TARGET, FOR THE ARM THAT PROVES READS DRAW ON THE BUDGET
+  # (D253).** A burst of ONE, so the second call in a pair is refused whichever
+  # verb makes it — which is the only way to show a read and a write share a
+  # bucket rather than each having their own.
+  #
+  # Its own target because the budget is consumed by the act of testing it: put
+  # these limits on kata:alpha and every other step would compete for two
+  # tokens an hour with this one.
+  - {ref: kata:metered, kind: kata, tenant: metered, residency: us, base_url: https://metered.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {kata_rows: "2"}, limits: {rate_per_hr: 2, burst: 1}}
+
+  # Three MORE tenants in the SAME residency, for the mixed-tenant concurrency
+  # step. Same region deliberately: residency would otherwise refuse them before
+  # the driver was ever reached, and the property under test is that concurrent
+  # calls to different tenants never see each other's Target — which only means
+  # something once every call gets far enough to make one.
+  - {ref: kata:gamma, kind: kata, tenant: gamma, residency: us, base_url: https://gamma.invalid, credential: env://SEKIZUI_ACCEPT_TOK}
+  - {ref: kata:delta, kind: kata, tenant: delta, residency: us, base_url: https://delta.invalid, credential: env://SEKIZUI_ACCEPT_TOK}
+  - {ref: kata:epsilon, kind: kata, tenant: epsilon, residency: us, base_url: https://epsilon.invalid, credential: env://SEKIZUI_ACCEPT_TOK}
+
+  # The three credential-binding classes (§4.7.4, D101), as SETTINGS rather than
+  # three drivers — the class is a property of how a system authenticates, not
+  # of the driver's code. kata:alpha and the rest are class 1 by default.
+  - {ref: kata:sdk, kind: kata, tenant: sdk, residency: us, base_url: https://sdk.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {binding: class2}}
+  - {ref: kata:session, kind: kata, tenant: session, residency: us, base_url: https://session.invalid, credential: env://SEKIZUI_ACCEPT_TOK, settings: {binding: class3}}
+
+  # **THE ONE TARGET THAT REACHES A SYSTEM NOBODY HERE CONTROLS (steps 1 and 4).**
+  # Org EXAMPLE on NA1. Its credential comes from an environment variable the
+  # steps set from `dev/secrets/fullstory.key` — gitignored, so a checkout
+  # without it simply has no key and the two steps SKIP rather than fail.
+  #
+  # **RESOLUTION IS PER CALL, which is what makes that safe.** An unset variable
+  # is not a boot problem; it is a failure at the moment something tries to use
+  # this target, and nothing does unless the steps run. So CI stays green with no
+  # secret, and the gate lives in the steps rather than in the loader.
+  # THE SOURCE OF THE P0 FIXTURE ENVELOPE, declared because a subscription now
+  # names the target it may read from (D259). The fixture used to claim
+  # `fullstory:o-EXAMPLE`, which no document declared — harmless while the bus
+  # could not scope by target, and unexpressible in a grant once it can. Never
+  # dialled: nothing is granted an action on it, only a subscription.
+  # A BUS SOURCE ONLY: envelopes and subscriptions name it, and nothing
+  # dispatches to it. Its host is Fullstory's own because a Fullstory target may
+  # name no other (P3 step 24) — were a step ever to call it, NA1 would answer
+  # 401 to a token that authenticates nothing, never a write.
+  - {ref: fs:fixture, kind: fullstory, tenant: fixture, residency: us, base_url: https://api.fullstory.com, credential: env://SEKIZUI_ACCEPT_TOK}
+
+  # **P3's HEADLINE SOURCE (step 4, D265): one user's sessions.** Against the
+  # real org only under `make acceptance-live`; the ordinary run points this
+  # target at a TLS fixture serving the response captured live on 2026-09-23.
+  # The uid is the one P2 step 4 upserts, so the source reads back the identity
+  # the governed write created.
+  - {ref: fs:sessions, kind: fullstory, tenant: sessions, residency: us, base_url: https://api.fullstory.com, credential: env://SEKIZUI_FS_LIVE, settings: {sessions_uid: "1509793"}}
+  # P3 step 18: the SAME uid's sessions, read as their EVENTS (D274, D276) — a
+  # differently shaped producer from the same vendor, chosen by the target.
+  - {ref: fs:events, kind: fullstory, tenant: events, residency: us, base_url: https://api.fullstory.com, credential: env://SEKIZUI_FS_LIVE, settings: {sessions_uid: "1509793", poll: events, custom_events: "sekizui_acceptance_step1,sekizui_acceptance_step29"}}
+  # P3 step 19: the same session's events, read under a capability whose
+  # max_bytes buys exactly three results (D283).
+  - {ref: fs:bounded, kind: fullstory, tenant: events, residency: us, base_url: https://api.fullstory.com, credential: env://SEKIZUI_FS_LIVE, settings: {custom_events: "sekizui_acceptance_step1"}}
+
+  #
+  # **A RATE LIMIT, ADDED WITH THE READ-BACK (D270).** Nothing bounded calls to
+  # the real org until step 29 began polling it. Ten a minute covers a poll
+  # every ten seconds with headroom for P2's two writes; a poll that outran it
+  # is REFUSED by Sekizui rather than sent to Fullstory (D142), and an upstream
+  # 429 drains this bucket and honours Retry-After (D140).
+  #
+  # **custom_events (D279):** the org's custom events this target fetches —
+  # Generate Context's `include_types`. Unlisted custom events never leave
+  # Fullstory; listed ones enter open, and shin protects consumers.
+  - {ref: fs:live, kind: fullstory, tenant: live, residency: us, base_url: https://api.fullstory.com, credential: env://SEKIZUI_FS_LIVE, limits: {rate_per_hr: 600, burst: 10}, settings: {custom_events: "sekizui_acceptance_step1,sekizui_acceptance_step29"}}
+
+  # A target existing ONLY to be withdrawn and restored (step 56), so the one
+  # step that must run against a LIVE instance cannot leave another step's
+  # target dead behind it.
+  - {ref: kata:restore, kind: kata, tenant: restore, residency: us, base_url: https://restore.invalid, credential: env://SEKIZUI_ACCEPT_TOK}
+
+  # A THIRD residency class, for step 59. Residency is not a two-valued
+  # eu/us question — a deployment may serve de, fr and jp — and a fixture with
+  # only two classes cannot tell "outside the ceiling" apart from "the other
+  # one". jp is outside every ceiling this suite sets, so a refusal on it is
+  # unambiguously the CEILING speaking and never the grant.
+  - {ref: kata:tokyo, kind: kata, tenant: tokyo, residency: jp, base_url: https://tokyo.invalid, credential: env://SEKIZUI_ACCEPT_TOK}
+
+grants:
+  - principal: agent:triage
+    allow:
+      - {action: kata.create_issue, target: kata:alpha, where: {project: [PROJ]}}
+      - {action: kata.read, target: kata:alpha}
+      # **THE TWO LIVE CAPABILITIES (steps 1 and 4), each naming its target.**
+      # `create_event` is class `none` and appends; `upsert_user` is `natural`
+      # and converges. Nothing else against `fs:live` — the same principal that
+      # may write an event may NOT, for instance, be granted a delete it has no
+      # business holding just because it already reaches this system.
+      - {action: fullstory.create_event, target: fs:live}
+      - {action: fullstory.upsert_user, target: fs:live}
+      # THE READ-BACK (P3 step 29, D270): the write's own principal reads the
+      # session back, so the check needs no second identity.
+      - {action: fullstory.session_events, target: fs:live}
+    escalate:
+      - {action: kata.delete_project, target: kata:alpha}
+
+  - principal: mesh:primary
+    allow:
+      - {action: kata.create_issue, target: kata:alpha}
+    may_speak_for: [agent:triage]
+
+  # Break-glass is a GRANT, not a back door (D129). The on-call operator may
+  # withdraw kata:alpha and nothing else — the same allowlist that bounds an
+  # agent bounds the human, and the revocation is authorised, recorded and
+  # hash-chained by the one enforcement path (D18).
+  - principal: operator:oncall
+    allow:
+      - {action: sekizui.revoke_credential, target: kata:alpha}
+
+      # **THE TWO LEVERS P3 STEP 34 PULLS, each against ONE named subject.**
+      # Criterion 17's two arms differ in kind and in durability — a grant
+      # SUSPENDED (D146, in-memory, until config is redeployed) and a
+      # credential REVOKED (D129, durable per D145) — and both must stop a job
+      # already running. Granted narrowly, because the point of break-glass
+      # being a grant is that it reads "may suspend agent:jobs" rather than
+      # "may suspend anybody".
+      - {action: sekizui.revoke_grant, target: principal:agent:jobs}
+      - {action: sekizui.revoke_credential, target: kata:slow}
+      - {action: sekizui.quarantine_target, target: kata:alpha}
+      - {action: sekizui.revoke_credential, target: kata:sdk}
+      - {action: sekizui.revoke_credential, target: kata:session}
+      - {action: sekizui.revoke_credential, target: kata:restore}
+      - {action: sekizui.quarantine_target, target: kata:restore}
+      - {action: sekizui.restore_target, target: kata:restore}
+
+      # PULLING A LEVER, not composing a decision (D134). The capability's
+      # subject is the RULE, so this grant reads "may fire credential-compromise"
+      # rather than "may revoke anything on kata:restore".
+      - {action: sekizui.fire_anzen, target: anzen:credential-compromise}
+      - {action: sekizui.fire_anzen, target: anzen:quarantine-under-observation}
+
+      # GRANT VERBS (D146), the alternative to hot reload. `target:` names a
+      # PRINCIPAL, so this reads "may suspend agent:global" rather than "may
+      # suspend anybody" — the same narrowing fire_anzen gets by naming a rule.
+      - {action: sekizui.revoke_grant, target: "principal:agent:global"}
+      - {action: sekizui.reinstate_grant, target: "principal:agent:global"}
+
+  # Exercises the class 2 and class 3 targets through the real enforcement path,
+  # which is what makes steps 50-52 assertions about production rather than
+  # about a pool a test built by hand.
+  - principal: agent:binding
+    allow:
+      - {action: kata.create_issue, target: kata:sdk}
+      - {action: kata.create_issue, target: kata:session}
+      - {action: kata.create_issue, target: kata:alpha}
+      - {action: kata.create_issue, target: kata:restore}
+
+  - principal: reflex:friction
+    allow:
+      - {action: kata.create_issue, target: kata:alpha}
+    # WHAT ITS RULES MAY SEE, and only from the fixture's source (D261). A
+    # reflex subscribes as its principal, so this grant — not the rule's own
+    # `consumes` — is what bounds which tenants' events it ever reacts to. One
+    # entry per rule pattern, each from the one target the fixture publishes as.
+    subscribe:
+      - {subject: "sekizui.raw.>", target: fs:fixture}
+      # THE SCHEDULED SOURCE'S ROWS (P3 step 7c, D272), so a rule can fire on a
+      # polled envelope and carry its poll's decision forward. Granted
+      # explicitly, as D261 requires: without this line the scope withholds
+      # them, which is what step 7c's first run found.
+      - {subject: "sekizui.raw.kata.>", target: kata:alpha}
+      - {subject: "sekizui.enriched.>", target: fs:fixture}
+      - {subject: "sekizui.judged.>", target: fs:fixture}
+      # A REAL CONNECTOR'S POLLED EVENTS (P3 step 21, D172): Fullstory session
+      # events from the scheduled fs:events source.
+      - {subject: "sekizui.raw.fullstory.>", target: fs:events}
+
+  # Granted on an eu-resident target, so residency refuses something POLICY allows.
+  #
+  # DELIBERATELY SILENT ABOUT THE CROSSING (D136). Under this run's single-class
+  # ceiling that is the only sensible form, and it is what a grant written before
+  # anybody had a border to think about looks like. Step 59 widens the ceiling to
+  # eu,us and shows this capability does NOT come along for the ride: widening
+  # escalates the requirement onto grants instead of quietly extending them.
+  - principal: agent:global
+    allow:
+      # A READ IT CAN LOSE. Step 68 proves that suspending a principal stops it
+      # READING as well as writing — the ceilings apply to both verbs (D155) —
+      # and that needs one principal that is both suspendable and able to read.
+      - {action: kata.read, target: kata:alpha}
+      - {action: kata.create_issue, target: kata:beta}
+
+  # THE OTHER HALF OF STEP 59, and the reason it is not vacuous. Names the
+  # crossing explicitly, so under a widened ceiling it works where agent:global
+  # is refused — same action, same target, different grant.
+  #
+  # The kata:tokyo capability is fully permitted BY POLICY, jp constraint and
+  # all, and is still refused because no ceiling in this suite serves jp. That is
+  # D71's asymmetry made concrete: the party that wants the data cannot grant
+  # itself the crossing.
+  - principal: agent:crossborder
+    allow:
+      - {action: kata.create_issue, target: kata:beta, where: {target_residency: [eu]}}
+      - {action: kata.create_issue, target: kata:tokyo, where: {target_residency: [jp]}}
+
+  # A read-only consumer, so the jurisdiction lens has a real subject. An
+  # analytics agent is the archetypal case: fully entitled to the data, and the
+  # wrong recipient for the personal parts of it.
+  - principal: agent:analytics
+    allow:
+      - {action: kata.read, target: kata:alpha}
+    # Bus subjects are granted explicitly (D92). Narrower than the reflex's own
+    # reach: analytics consumes enriched events and never raw ones — and only
+    # from the target named, since a subscription is subject × target (D259).
+    subscribe:
+      - {subject: "sekizui.enriched.>", target: fs:fixture}
+
+  # **A PRINCIPAL OF ITS OWN, BECAUSE THE GRANT SHAPE IS WHAT STEP 31 IS
+  # ABOUT** — the same reason agent:binding and agent:idempotency have one.
+  #
+  # Two things are being shown at once and they must not be conflatable. The
+  # job needs `kata.poll` and NOTHING ELSE: a job is "a governed action with a
+  # longer life and not a different kind of thing" (D247), so starting one
+  # takes the capability the WORK needs rather than a second verb or a
+  # `may_start_jobs` flag, and that is what makes D18's "no second path" true
+  # in the configuration and not only in the code. And it needs a SUBSCRIBE
+  # grant, because a caller who asks for a job must be able to receive it —
+  # without one the job runs, publishes, and the caller who paid for it is
+  # refused its own output.
+  #
+  # NOT FOLDED INTO agent:triage, which would have been one line shorter and
+  # would have broken P0 step 16b — that step's deny-by-default arm rests on
+  # triage having no subscribe grant AT ALL, and a premise quietly falsified
+  # by a later phase is how a passing test stops meaning anything.
+  - principal: agent:jobs
+    allow:
+      - {action: kata.poll, target: kata:alpha}
+
+      # THE THREE ENDINGS (step 32). Granted per target rather than by a
+      # wildcard, because a grant that names its targets is the only kind an
+      # operator can review — and because the step's claim is about what the
+      # LOG says, not about how wide the grant was.
+      - {action: kata.poll, target: kata:empty}
+      - {action: kata.poll, target: kata:panicky}
+      - {action: kata.poll, target: kata:slow}
+
+      # **A BUDGETED CAPABILITY, FOR P3 STEP 35 (criterion 18, CONTRACTS 70).**
+      # 2 MiB, so one event's worst case (256 KiB) fits eight times: big enough
+      # that a modest job runs and small enough that a greedy one is refused
+      # with both numbers nameable. On its own target, because the arm is about
+      # the BUDGET and a shared target would let another step's traffic decide
+      # the outcome.
+      - {action: kata.poll, target: kata:budgeted, max_bytes: 2097152}
+      # P3 step 4: the Fullstory sessions poll, as a job this caller asks for.
+      - {action: fullstory.poll, target: fs:sessions}
+      # P3 step 18: the same uid's session events — polled, and read (18f),
+      # so both ingest paths are seen to apply one allowlist (D279).
+      - {action: fullstory.poll, target: fs:events}
+      - {action: fullstory.session_events, target: fs:events}
+      # P3 step 19: three results' worth — 3 × 262144 bytes (D283).
+      - {action: fullstory.session_events, target: fs:bounded, max_bytes: 786432}
+    # NO SUBSCRIBE GRANT, AND ITS ABSENCE IS THE POINT (D267): a job's results
+    # come back through JobResults to the caller who asked, so a caller needs
+    # no standing read of the bus to receive what it requested.
+
+  # **CONFIGURATION AS A CALLER (P3 steps 5 and 14, D250, D266).** A schedule
+  # has nobody asking, so it runs as `source:<target>` — and that principal is
+  # granted exactly the poll it performs, which is what gives an unattended
+  # source an anzen ceiling, a `revoke_grant` and a decision record.
+  - principal: source:kata:alpha
+    allow:
+      - {action: kata.poll, target: kata:alpha}
+
+  # P3 step 12's unrecoverable source, polled as itself.
+  - principal: source:kata:gap
+    allow:
+      - {action: kata.poll, target: kata:gap}
+
+  # P3 step 21: a schedule polling Fullstory session events, run by the step
+  # itself (not listed under `sources:`, so no other step polls it).
+  - principal: source:fs:events
+    allow:
+      - {action: fullstory.poll, target: fs:events}
+
+  # **A SUBSCRIBER WHOSE GRANT IS TWO PAIRS, AND NOTHING ELSE (P3 step 37,
+  # D259).** Raw rows from kata:alpha and enriched ones from kata:beta — crossed
+  # on purpose, so a raw row from beta and an enriched one from alpha each
+  # satisfy HALF of the grant. A consumer granted one pair could only prove the
+  # target is checked; it takes two to prove they are checked TOGETHER.
+  - principal: agent:scoped
+    subscribe:
+      - {subject: "sekizui.raw.kata.>", target: kata:alpha}
+      - {subject: "sekizui.enriched.>", target: kata:beta}
+
+  # **ONE PRINCIPAL, ONE TARGET, A READ AND A WRITE (D253).** The arm has to
+  # show the two verbs draw on the SAME bucket, so it needs both capabilities
+  # on one metered target and no other traffic competing for it.
+  - principal: agent:metered
+    allow:
+      - {action: kata.read, target: kata:metered}
+      - {action: kata.create_issue, target: kata:metered}
+
+  # TWO ACTIONS ON ONE TARGET, DIFFERING ONLY IN IDEMPOTENCY CLASS (D163, D182).
+  #
+  # A PRINCIPAL OF ITS OWN rather than two more grants on agent:triage, for the
+  # reason agent:binding and agent:crossborder each have one: the grant SHAPE is
+  # what the step is about. `append_event` is class `none` and `upsert_record` is
+  # `natural`, both mutating, both on kata:alpha — so a refusal here can only be
+  # the CLASS speaking. Widening triage would have left the difference to be
+  # inferred from the driver's source, and would have changed what every other
+  # triage step advertises.
+  - principal: agent:idempotency
+    allow:
+      - {action: kata.append_event, target: kata:alpha}
+      - {action: kata.upsert_record, target: kata:alpha}
+
+  # Granted across FOUR tenants, for the mixed-tenant concurrency step. One
+  # principal spanning tenants is the realistic shape — a shared mesh serving
+  # several customers — and it is also the shape where a leak is possible at
+  # all. A principal confined to one tenant cannot bleed into another.
+  - principal: agent:bulk
+    allow:
+      - {action: kata.create_issue, target: kata:alpha}
+      - {action: kata.create_issue, target: kata:gamma}
+      - {action: kata.create_issue, target: kata:delta}
+      - {action: kata.create_issue, target: kata:epsilon}
+
+# THE SCHEDULED TRIGGER (D249, D266). Run only by `-mode=ingest`; the gateway
+# serving this same document logs that it schedules none. One second, because
+# the steps that exercise it wait for a tick and a real deployment would not
+# poll a kata target at all.
+sources:
+  - {target: kata:alpha, every_s: 1, limit: 10}
+
+reflexes:
+  # bus -> driver, enforcing.
+  - name: friction-to-ticket
+    principal: reflex:friction
+    enabled: true
+    mode: enforce
+    # ARMING TAKES TWO ACTS (D264): the mode above, and the budget that bounds
+    # it. Without this line the boot refuses the rule.
+    max_firings_per_hour: 100
+    consumes: sekizui.enriched.>
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+  # bus -> bus enrichment, with explicit carry (D63).
+  - name: correlate-friction
+    principal: reflex:friction
+    enabled: true
+    consumes: sekizui.raw.>
+    expects_type: fullstory.rage_click.v1
+    publish_to: sekizui.enriched.friction_detected
+    # DECLARED, not derived from the subject (D88). Deriving produced
+    # "friction_detected" — unversioned and unregistered, outside D41 and D42.
+    publishes_type: fullstory.friction_detected.v1
+    carry: [session_id, url]
+    with: {severity: high}
+
+  # **NO MODE, ON PURPOSE (P3 step 22, D172).** Shadow is the default, and a
+  # default is exactly what a later refactor changes without noticing — so this
+  # rule exists to be matched and to NOT fire. Narrowed to kata rows so P0 step
+  # 8's fullstory envelope never reaches it.
+  - name: unarmed-ticket
+    principal: reflex:friction
+    enabled: true
+    consumes: sekizui.raw.kata.>
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+  # **THE LOOP CLOSES ON A REAL CONNECTOR (P3 step 21, D172).** A Fullstory
+  # session event polled on a schedule becomes an envelope, this rule matches
+  # it, and the command it builds takes the enforcement path an agent's takes.
+  # Shadow — no mode — so it records WOULD_HAVE_FIRED and touches nothing.
+  - name: session-event-ticket
+    principal: reflex:friction
+    enabled: true
+    consumes: sekizui.raw.fullstory.>
+    expects_type: fullstory.session_event.v1
+    where:
+      - {path: event_type, op: eq, value: navigate}
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+  # **A DECLARATIVE `where` (P3 step 39, D263).** No Rego: a path, an operator
+  # and a value, checked against `kata.row.v1`'s schema at boot. Shadow, so it
+  # records what it would have done and touches nothing.
+  - name: high-ordinal-ticket
+    principal: reflex:friction
+    enabled: true
+    consumes: sekizui.raw.kata.>
+    expects_type: kata.row.v1
+    where:
+      - {path: ordinal, op: gt, value: 5}
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+  # **THE BOUNDS, EACH ON A RULE OF ITS OWN (P3 step 40, D264).** Shadow, so a
+  # firing is a WOULD_HAVE_FIRED record and touches nothing. A budget of TWO,
+  # so the third firing inside the hour is the one refused.
+  - name: budgeted-ticket
+    principal: reflex:friction
+    enabled: true
+    consumes: sekizui.raw.kata.>
+    expects_type: kata.row.v1
+    where:
+      - {path: ordinal, op: eq, value: 40}
+    max_firings_per_hour: 2
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+  # Of the rows sharing one `ref`, only the first in an hour fires.
+  - name: debounced-ticket
+    principal: reflex:friction
+    enabled: true
+    consumes: sekizui.raw.kata.>
+    expects_type: kata.row.v1
+    where:
+      - {path: ordinal, op: eq, value: 41}
+    debounce_key: ref
+    debounce_window_s: 3600
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+  # **PROJECTIONS (P3 step 36, D248, D269).** They act as nobody — no
+  # principal, no action — and shape `Envelope.projection` at delivery, after
+  # shin, for a consumer that asked. Split by `where` so one job's three rows
+  # prove both directions:
+  #   rows 0-1: `row-summary` carries `ordinal`, which job-results-lite keeps.
+  #   row 2:    `leaky-summary` carries `ref`, which job-results-lite REMOVES —
+  #             so, shaped after the lens, it cannot be built, and the row
+  #             arrives with no projection rather than with the withheld field.
+  - name: row-summary
+    projects: true
+    enabled: true
+    consumes: sekizui.raw.kata.>
+    expects_type: kata.row.v1
+    where:
+      - {path: ordinal, op: lte, value: 1}
+    carry: [ordinal]
+    with: {kind: kata row}
+
+  - name: leaky-summary
+    projects: true
+    enabled: true
+    consumes: sekizui.raw.kata.>
+    expects_type: kata.row.v1
+    where:
+      - {path: ordinal, op: eq, value: 2}
+    carry: [ref]
+
+  # Downstream of a model, acknowledged (D64).
+  - name: act-on-judgement
+    principal: reflex:friction
+    enabled: true
+    mode: shadow
+    consumes: sekizui.judged.>
+    acknowledges_llm_input: true
+    action: kata.create_issue
+    target: kata:alpha
+    with: {project: PROJ}
+
+anzen:
+  # Preventive: a ceiling grants cannot exceed (D71).
+  - name: no-destructive-actions
+    enabled: true
+    mode: enforce
+    forbids: ["*.delete_*"]
+
+  # Preventive: blast radius at an instant, scoped to reflexes.
+  - name: reflex-burst-cap
+    enabled: true
+    mode: enforce
+    max_concurrent: 3
+    applies_to: ["reflex:*"]
+
+  # THE DECISION, MADE IN DAYLIGHT (D134). An operator fires this by name and
+  # chooses nothing: the rule already says which target and which severity, so
+  # nobody is deciding at 03:00 between "the target is misbehaving" and "the
+  # credential is compromised" — a distinction §4.7.10 draws precisely and which
+  # is easy to invert under pressure.
+  - name: credential-compromise
+    enabled: true
+    mode: enforce
+    watches: credential_stale
+    do: revoke_credential
+    subject: kata:restore
+
+  # Enabled but SHADOW, so step 57 can prove a rule under observation cannot be
+  # fired on demand — an observation somebody can discharge is not one.
+  - name: quarantine-under-observation
+    enabled: true
+    mode: shadow
+    watches: spec_drift
+    do: quarantine_target
+    subject: kata:restore
+
+  # Reactive: validated at boot; the dispatcher lands with its signals (P5).
+  - name: quarantine-on-drift
+    enabled: true
+    mode: shadow
+    watches: spec_drift
+    do: quarantine_target
+    subject: kata:alpha
+
+# Payload schemas (D40). Registered so that shin field paths can be validated at
+# boot (D42) rather than silently never matching.
+# DISCRIMINATED TYPES (D276): whose payload shape depends on a field's value.
+# Connector-agnostic — `discriminator` and `properties` name the two fields,
+# here Fullstory's own event-centric pair. A kind not listed is REFUSED per
+# event at publish, and a reflex `where` naming one refuses the boot. The kinds
+# are what the live org and P3 step 18's fixture actually carry; a custom event
+# arrives with its NAME as its kind, so each one a deployment relies on is
+# declared by name.
+payload_schemas:
+  fullstory.rage_click.v1:
+    type: object
+    properties:
+      session_id: {type: string}
+      url: {type: string}
+      clicks: {type: integer}
+      severity: {type: string}
+      user:
+        type: object
+        properties:
+          id: {type: string}
+          email: {type: string}
+    required: [session_id, url]
+
+  # What the enrichment reflex EMITS. Every carried field and every added key is
+  # checked against this at boot (D88) — a carried field the output does not
+  # declare is one every downstream lens and rule silently fails to find.
+  fullstory.friction_detected.v1:
+    type: object
+    properties:
+      session_id: {type: string}
+      url: {type: string}
+      severity: {type: string}
+    required: [session_id, url]
+
+  # **NO CONNECTOR'S TYPES HERE (D279).** kata.row.v1, kata.read_result.v1,
+  # fullstory.session.v1 and fullstory.session_event.v1 are declared by the
+  # connectors that emit them, in each driver's schemas.yaml; a schema here for
+  # one of them is refused at boot. What remains is what THIS deployment
+  # produces or injects in its tests.
+
+  agent.verdict.v1:
+    type: object
+    properties:
+      severity: {type: string}
+
+# Shin (真) lenses — what each consumer actually receives (D83).
+shin:
+  # IMPOSED, jurisdiction-scoped. A ceiling no consumer can decline, applying to
+  # every payload type because a compliance rule that only covered one would be
+  # a compliance rule with a hole.
+  - name: no-pii-to-analytics
+    enabled: true
+    mode: imposed
+    applies_to: ["agent:analytics"]
+    withholds: [user.email]
+    because: analytics has no lawful basis for personal data under GDPR
+
+  # IMPOSED, size ceiling scoped to reflexes. Bounds what ONE delivery carries;
+  # how many arrive is a rate limit (§4.3.4), which is a different control.
+  - name: reflex-payload-ceiling
+    enabled: true
+    mode: imposed
+    applies_to: ["reflex:*"]
+    max_bytes: 4096
+    because: a reflex reacts to a signal and never needs a whole session replayed
+
+  # REQUESTABLE. agent:triage selects this for itself; it composes UNDER any
+  # imposed lens above and can only narrow further. Two keys out of seven.
+  - name: triage-lite
+    enabled: true
+    mode: requestable
+    applies_to: ["agent:triage"]
+    type: fullstory.rage_click.v1
+    fields: [session_id, url]
+    because: a triage agent needs where the friction happened, not the whole session
+
+  # IMPOSED, and the lens P3 step 31 delivers a job's results THROUGH. A job
+  # reaches a real connector and its rows come back as envelopes like any
+  # other, so the consumer-shaping layer applies to them unchanged — which is
+  # the step's actual claim, and the reason criterion 9 is honest here and was
+  # not against a fixture that agreed with us by construction (D222).
+  #
+  # `ordinal` and not `ref`: the row carries both, so the arm can assert on the
+  # BYTES that one is present and the other gone. A lens proven by a field that
+  # was never there proves nothing.
+  - name: job-results-lite
+    enabled: true
+    mode: imposed
+    applies_to: ["agent:jobs"]
+    type: kata.row.v1
+    fields: [ordinal]
+    because: a caller asking for a job wants the rows, not the bookkeeping the source keeps beside them
+
+  # JURISDICTION-SCOPED, as a PAIR, because one lens can only prove one arm.
+  #
+  # `residency:` on a lens is the DATA's class (D84) — NOT `target_residency`,
+  # which is the TARGET's and scopes grants and anzen guards (D136, D137). Two
+  # axes, two words: they coincide here because a query result inherits the class
+  # of the target it came from, and P2's data classes are where they stop.
+  #
+  # THE FIELD EXISTED AND NOTHING IN ANY FIXTURE SET IT (CONTRACTS item 40), so
+  # `Lens.covers`'s residency arm was proven by a unit test and never taken on
+  # the real delivery path. Both lenses are scoped by `type` so they apply to
+  # query results only and cannot disturb the bus steps.
+  - name: us-detail-withheld
+    enabled: true
+    mode: imposed
+    applies_to: ["agent:analytics"]
+    type: kata.read_result.v1
+    residency: us
+    withholds: [target]
+    because: the us arm — this MUST apply, because the acceptance targets are us-resident (D326)
+
+  - name: eu-detail-withheld
+    enabled: true
+    mode: imposed
+    applies_to: ["agent:analytics"]
+    type: kata.read_result.v1
+    residency: eu
+    withholds: [user.id]
+    because: the eu arm — this must NOT apply, and `user.id` surviving is what proves it
+
+  # REQUESTABLE, on a QUERY result rather than an envelope. Possible only because
+  # the driver declares its output type (D88); before that, query results could
+  # be narrowed by withholding but never by an allow-list.
+  - name: ids-only
+    enabled: true
+    mode: requestable
+    applies_to: ["agent:analytics"]
+    type: kata.read_result.v1
+    fields: [id, tenant]
+    because: the analytics pipeline joins on identifiers and reads nothing else

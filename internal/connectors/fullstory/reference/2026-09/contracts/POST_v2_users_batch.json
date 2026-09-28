@@ -1,0 +1,136 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/users/batch",
+  "operation_id": "CreateBatchUserImportJob",
+  "title": "Create Batch Import",
+  "description": "Creates a batch user import job with the given list of users' information.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/users/create-batch-user-import-job/",
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "description": "Optional header for making the request idempotent",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "requests": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The Fullstory assigned user ID"
+            },
+            "uid": {
+              "type": "string",
+              "example": "xyz123",
+              "description": "The application-specific ID you've given to the user",
+              "maxLength": 256
+            },
+            "display_name": {
+              "type": "string",
+              "description": "The nice-looking name for this user",
+              "maxLength": 256
+            },
+            "email": {
+              "type": "string",
+              "description": "The email address associated with this user",
+              "maxLength": 128
+            },
+            "properties": {
+              "type": "object",
+              "example": {
+                "rewards_status": "platinum"
+              },
+              "description": "Properties that provide additional information about your user.\n - Up to 500 unique properties are allowed.\n - Property names must be a sequence of alphanumeric characters A-Z, a-z, or 0-9 and underscores (\"_\").\n - Property names must start with an alphabetic character (A-Z or a-z).\n - The maximum property name length is 512 characters.\n - Property values may also contain nested objects. Properties within nested objects must still conform to the naming requirements. For nested objects, the property name including the dotted concatenation of all its parent properties must still be under the length limit of 512 characters.\n - Property values have a maximum size of 8192 bytes. If the value for the property is larger than this limit, the property will be rejected.",
+              "maxProperties": 500
+            },
+            "schema": {
+              "description": "Optional schema declaration, to define the structure of the data and override Fullstory's default type inference.",
+              "x-fullstory-doc-example-ignore": true,
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "A mapping of field names to their corresponding types."
+                }
+              }
+            }
+          },
+          "description": "The request payloads contains the user data to be imported"
+        },
+        "description": "The list of users and their information that should be imported in this batch request"
+      }
+    },
+    "required": [
+      "requests"
+    ]
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "job": {
+        "description": "Information about the job that was initiated to import the list of users submitted",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc123",
+            "description": "ID of the job."
+          },
+          "status": {
+            "example": "PROCESSING",
+            "description": "Status of the job.",
+            "type": "string",
+            "enum": [
+              "PROCESSING",
+              "COMPLETED",
+              "FAILED"
+            ],
+            "default": "UNKNOWN"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2017-01-15T01:30:15.01Z",
+            "description": "Time the job was accepted."
+          },
+          "finished": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time the job was finished, either successfully or unsuccessfully.",
+            "x-fullstory-doc-example-ignore": true
+          }
+        },
+        "title": "JobMetadata",
+        "required": [
+          "id",
+          "status",
+          "created"
+        ]
+      }
+    },
+    "required": [
+      "job"
+    ],
+    "example": {
+      "job": {
+        "id": "abc123",
+        "status": "PROCESSING",
+        "created": "2017-01-15T01:30:15.01Z"
+      }
+    }
+  }
+}

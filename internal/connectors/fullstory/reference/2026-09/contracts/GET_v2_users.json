@@ -1,0 +1,195 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/users",
+  "operation_id": "ListUsers",
+  "title": "List Users",
+  "description": "Retrieve a list of users matching the supplied filter criteria",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/users/list-users/",
+  "parameters": [
+    {
+      "name": "uid",
+      "description": "The application-specific ID you've given to a user",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "email",
+      "description": "The email address associated with a user",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "display_name",
+      "description": "The nice-looking name for a user",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "is_identified",
+      "description": "Whether or not a user is anonymous or identified",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "boolean"
+      }
+    },
+    {
+      "name": "page_token",
+      "description": "The token indicating the page of users to fetch. The same filter criteria should be supplied. This value should not be specified when requesting the first page of users.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "include_schema",
+      "description": "Whether to include schemas in the response.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "boolean"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "987654321",
+              "description": "The Fullstory assigned user ID"
+            },
+            "uid": {
+              "type": "string",
+              "example": "xyz123",
+              "description": "The application-specific ID you've given to the user",
+              "maxLength": 256
+            },
+            "display_name": {
+              "type": "string",
+              "example": "Daniel Falko",
+              "description": "The nice-looking name for this user",
+              "maxLength": 256
+            },
+            "email": {
+              "type": "string",
+              "example": "daniel.falko@example.com",
+              "description": "The email address associated with this user",
+              "maxLength": 128
+            },
+            "is_being_deleted": {
+              "type": "boolean",
+              "example": false,
+              "description": "Indicates whether or not this user is in the process of being removed"
+            },
+            "properties": {
+              "type": "object",
+              "example": {
+                "pricing_plan": "paid",
+                "popup_help": true,
+                "total_spent": 14.55
+              },
+              "description": "Properties that provide additional information about your user.\n - Up to 500 unique properties are allowed.\n - Property names must be a sequence of alphanumeric characters A-Z, a-z, or 0-9 and underscores (\"_\").\n - Property names must start with an alphabetic character (A-Z or a-z).\n - The maximum property name length is 512 characters.\n - Property values may also contain nested objects. Properties within nested objects must still conform to the naming requirements. For nested objects, the property name including the dotted concatenation of all its parent properties must still be under the length limit of 512 characters.\n - Property values have a maximum size of 8192 bytes. If the value for the property is larger than this limit, the property will be rejected.",
+              "maxProperties": 500
+            },
+            "schema": {
+              "example": null,
+              "description": "A mapping from fields to their types, whether inferred automatically or declared in the request.",
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "A mapping of field names to their corresponding types."
+                }
+              }
+            },
+            "type_conflicts": {
+              "example": null,
+              "description": "Any fields that are associated with multiple types.",
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "Any fields that are associated with multiple types."
+                }
+              }
+            },
+            "app_url": {
+              "type": "string",
+              "example": "https://app.fullstory.com/ui/orgid/segments/everyone/people:search:abc/user/xyz",
+              "description": "A link to the Fullstory app segments page, focused on this user."
+            }
+          },
+          "description": "Server response payload for retrieving a single user",
+          "required": [
+            "id",
+            "is_being_deleted"
+          ]
+        },
+        "description": "The list of users that match the input filter criteria"
+      },
+      "total_records": {
+        "type": "string",
+        "example": "1200",
+        "description": "The total number of users that matched the filter criteria"
+      },
+      "next_page_token": {
+        "type": "string",
+        "example": "asd543=",
+        "description": "The token that can be used in a subsequent request with the same filter criteria to fetch the next page of users"
+      },
+      "app_url": {
+        "type": "string",
+        "example": "https://app.fullstory.com/ui/orgid/segments/everyone/people:search:abc/0",
+        "description": "A link to an anonymous segment in the Fullstory app containing these users."
+      }
+    },
+    "description": "Server response for listing all users satisfying the request",
+    "required": [
+      "results",
+      "total_records"
+    ],
+    "example": {
+      "results": [
+        {
+          "id": "987654321",
+          "uid": "xyz123",
+          "display_name": "Daniel Falko",
+          "email": "daniel.falko@example.com",
+          "is_being_deleted": false,
+          "properties": {
+            "pricing_plan": "paid",
+            "popup_help": true,
+            "total_spent": 14.55
+          },
+          "schema": null,
+          "type_conflicts": null,
+          "app_url": "https://app.fullstory.com/ui/orgid/segments/everyone/people:search:abc/user/xyz"
+        }
+      ],
+      "total_records": "1200",
+      "next_page_token": "asd543=",
+      "app_url": "https://app.fullstory.com/ui/orgid/segments/everyone/people:search:abc/0"
+    }
+  }
+}

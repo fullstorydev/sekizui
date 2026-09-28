@@ -1,0 +1,35 @@
+# SUGGESTED — the Fullstory connector's anzen ceilings (D314, blueprint step 8).
+#
+# A CONFIG FRAGMENT: drop it into a deployment's config directory (D278). P4 step 33 loads THIS
+# FILE, so what ships is what is tested.
+#
+# A CEILING, NOT AN OPINION (D71). Checked BEFORE policy, so these actions are refused even where a
+# grant permits them — a wildcard `fullstory.*` included — and the refusal is recorded naming the
+# rule, and Describe reports each as withheld by it. A deployment that needs one allows it
+# DELIBERATELY: by scoping a rule with `applies_to`, or by removing the name, in a reviewed change.
+#
+# WHAT IS HERE, ruled by the maintainer (D314): the IRREVERSIBLE operations — nothing can undo them — and every
+# write to the org's RECORDING CONFIGURATION, which changes what Fullstory captures from then on.
+# Two rules rather than one, so a refusal says which of the two it was.
+anzen:
+  - name: fullstory-irreversible
+    enabled: true
+    mode: enforce
+    forbids:
+      - fullstory.delete_user              # DELETE /v2/users/{id}
+      - fullstory.delete_user_v1           # DELETE /users/v1/individual/{uid}
+      - fullstory.delete_session_profile   # DELETE /v2/visit_profile/{id}
+
+  - name: fullstory-recording-configuration
+    enabled: true
+    mode: enforce
+    forbids:
+      - fullstory.update_element_block_rules  # POST /settings/recording/v1/privacy:element-block-rules
+      - fullstory.create_element_block_rule   # POST /v2beta/privacy/elements
+      - fullstory.update_element_block_rule   # POST /v2beta/privacy/elements/{id}
+      - fullstory.delete_element_block_rule   # DELETE /v2beta/privacy/elements/{id}
+      - fullstory.create_extraction_rule      # POST /v2beta/extraction/rules
+      - fullstory.replace_extraction_rule     # PUT /v2beta/extraction/rules/{id}
+      - fullstory.update_extraction_rule      # PATCH /v2beta/extraction/rules/{id}
+      - fullstory.archive_extraction_rule     # POST /v2beta/extraction/rules/{id}/archive
+      - fullstory.unarchive_extraction_rule   # POST /v2beta/extraction/rules/{id}/unarchive

@@ -1,0 +1,87 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/sessions/v2",
+  "operation_id": "list-sessions",
+  "title": "List Sessions",
+  "description": "Return a list of session replay URLs for a user, queried by email address and/or uid. If both a uid and email parameter are passed into the API, this endpoint queries on them separately and returns a union of the records found. Therefore, it's recommended to use either `uid` or `email`, but not both.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/sessions/list-sessions/",
+  "parameters": [
+    {
+      "name": "uid",
+      "description": "The uid is your app's user id for the current user set via FS.identify. Required if `email` is not provided.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "email",
+      "description": "The email address that you have associated with the user via FS.identify or FS.setUserVars. Required if `uid` is not provided.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "The max number of sessions to return (defaults to 20).",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "format": "int64"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "sessions": [
+        {
+          "userId": "1234567890",
+          "sessionId": "1234567890",
+          "createdTime": "1411492739",
+          "fsUrl": "https://www.fullstory.com/ui/ORG_ID/discover/session/1234567890:1234567890"
+        },
+        {
+          "userId": "1234567890",
+          "sessionId": "0987654321",
+          "createdTime": "1411496904",
+          "fsUrl": "https://www.fullstory.com/ui/ORG_ID/discover/session/1234567890:0987654321"
+        }
+      ]
+    },
+    "properties": {
+      "sessions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "format": "int64"
+            },
+            "session_id": {
+              "type": "string",
+              "format": "int64"
+            },
+            "created_time": {
+              "type": "string",
+              "format": "int64"
+            },
+            "fs_url": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/sessions/{session_id}/summary",
+  "operation_id": "GenerateSummary",
+  "title": "Generate Summary",
+  "description": "Return a generative AI summarization of the specified session using the supplied [prompt summary profile](/server/sessions/create-profile/) that specifies both prompting instructions and session context configuration.\nUse the `GET` version of this endpoint when generating a summary with an existing prompt profile as-is. Use the [`POST` version](/server/sessions/generate-summary-with-overrides/) when you'd like to provide an ad-hoc prompt or a profile configuration, or when you need to override specific prompt profile parameters for a single request.\nSee [the Generate Summary Overview section of the Introduction](/server/sessions/introduction/#generate-summary-overview) for detailed guidance on generating session summaries.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/generate-summary/",
+  "parameters": [
+    {
+      "name": "session_id",
+      "description": "The UTF-8 encoded ID of the session for which to generate context data. To retrieve the Session ID you may use the appropriate Get Session Details API for [Web](/browser/get-session-details/), [iOS](/mobile/ios/get-session-details/), or [Android](/mobile/android/get-session-details/). As Session IDs include `:` separators the ID must be URL encoded using the `%3A` substitution. [Learn more](https://help.fullstory.com/hc/en-us/articles/34050890025111-Working-with-session-ID-values-for-use-with-the-server-API).",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "config_profile",
+      "description": "The `id` value returned from [Create Profile](/server/sessions/create-profile/). If no `config_profile` is provided, a simple synopsis of the user's experience will be returned.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "end_timestamp",
+      "description": "If specified, only events before this timestamp will be included in the context.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string"
+      },
+      "response": {
+        "type": "object",
+        "example": {
+          "summary": "User browsed products, added an item to cart, but abandoned checkout after encountering a payment error.",
+          "sentiment": "negative",
+          "issues": [
+            "payment error at checkout",
+            "slow page load on product detail"
+          ]
+        },
+        "additionalProperties": {},
+        "description": "The structured LLM response as key-value pairs, populated when a response_schema is configured. Each key corresponds to a property defined in the schema, and values conform to the schema's type constraints."
+      },
+      "response_schema": {
+        "example": {
+          "type": "OBJECT",
+          "title": "SessionSummary",
+          "description": "Structured output for the LLM response",
+          "properties": {
+            "summary": {
+              "type": "STRING",
+              "description": "Concise session summary"
+            },
+            "sentiment": {
+              "type": "STRING",
+              "enum": [
+                "positive",
+                "neutral",
+                "negative"
+              ],
+              "format": "enum"
+            },
+            "issues": {
+              "type": "ARRAY",
+              "items": {
+                "type": "STRING"
+              }
+            }
+          },
+          "required": [
+            "summary"
+          ]
+        },
+        "description": "Echoes the structured response schema used, enabling clients to validate/interpret the dynamic response map.",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "OPENAPI_TYPE_UNSPECIFIED",
+              "STRING",
+              "NUMBER",
+              "INTEGER",
+              "BOOLEAN",
+              "ARRAY",
+              "OBJECT"
+            ],
+            "default": "OPENAPI_TYPE_UNSPECIFIED"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "items": {
+            "type": "object",
+            "properties": "circular([object Object])"
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": "circular([object Object])"
+            }
+          },
+          "required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nullable": {
+            "type": "boolean"
+          },
+          "enum": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "format": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "example": {
+      "response": {
+        "summary": "User browsed products, added an item to cart, but abandoned checkout after encountering a payment error.",
+        "sentiment": "negative",
+        "issues": [
+          "payment error at checkout",
+          "slow page load on product detail"
+        ]
+      },
+      "response_schema": {
+        "type": "OBJECT",
+        "title": "SessionSummary",
+        "description": "Structured output for the LLM response",
+        "properties": {
+          "summary": {
+            "type": "STRING",
+            "description": "Concise session summary"
+          },
+          "sentiment": {
+            "type": "STRING",
+            "enum": [
+              "positive",
+              "neutral",
+              "negative"
+            ],
+            "format": "enum"
+          },
+          "issues": {
+            "type": "ARRAY",
+            "items": {
+              "type": "STRING"
+            }
+          }
+        },
+        "required": [
+          "summary"
+        ]
+      }
+    }
+  }
+}

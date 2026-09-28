@@ -1,0 +1,54 @@
+{
+  "tier": "anywhere",
+  "method": "GET",
+  "path": "/webhooks/v1/event-types/{event_name}/sample",
+  "operation_id": "GetSampleData",
+  "title": "Get Sample Data",
+  "description": "Gets sample data",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/anywhere/v1/webhooks/get-sample-data/",
+  "parameters": [
+    {
+      "name": "event_name",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "subcategory",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "version",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int64"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "event_name": {
+        "type": "string"
+      },
+      "version": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "data": {
+        "type": "object"
+      }
+    }
+  }
+}

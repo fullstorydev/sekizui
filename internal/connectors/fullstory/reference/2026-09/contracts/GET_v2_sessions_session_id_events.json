@@ -1,0 +1,74 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/sessions/{session_id}/events",
+  "operation_id": "GetSessionEvents",
+  "title": "Get Session Events",
+  "description": "Return the full set of captured events for a specified Session.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/get-session-events/",
+  "parameters": [
+    {
+      "name": "session_id",
+      "description": "The UTF-8 encoded ID of the session for which to generate context data. To retrieve the Session ID you may use the appropriate Get Session Details API for [Web](/browser/get-session-details/), [iOS](/mobile/ios/get-session-details/), or [Android](/mobile/android/get-session-details/). As Session IDs include `:` separators the ID must be URL encoded using the `%3A` substitution. [Learn more](https://help.fullstory.com/hc/en-us/articles/34050890025111-Working-with-session-ID-values-for-use-with-the-server-API).",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "enable_event_cache",
+      "description": "Deprecated.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "boolean"
+      }
+    }
+  ],
+  "response": {
+    "example": {
+      "events": [
+        {
+          "device_id": "17117",
+          "session_id": "5916567459329906423",
+          "view_id": "4376064173749384629",
+          "event_time": "2024-04-03T17:06:12.290Z",
+          "event_type": "navigate",
+          "event_properties": {
+            "navigate_reason": "navigate",
+            "event_definition_id": "Navigate-Login-Event",
+            "additional_event_definition_ids": []
+          },
+          "source_type": "web",
+          "source_properties": {
+            "user_agent": {
+              "raw_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+              "device": "Desktop",
+              "operating_system": "OS X",
+              "browser": "Chrome",
+              "browser_version": "123.0.0.0"
+            },
+            "url": {
+              "full_url": "https://app.fullstory.com/login/?dest=%2Fui",
+              "host": "app.fullstory.com",
+              "path": "/login/",
+              "query": {
+                "dest": {
+                  "values": [
+                    "/ui"
+                  ]
+                }
+              }
+            },
+            "initial_referrer": null
+          }
+        }
+      ]
+    }
+  }
+}

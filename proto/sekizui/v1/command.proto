@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package sekizui.v1;
+
+import "google/protobuf/struct.proto";
+import "sekizui/v1/envelope.proto";
+import "sekizui/v1/decision.proto";
+import "sekizui/v1/seiren.proto";
+
+
+// command.proto — the efferent (motor) path: an action to take on an external system.
+//
+// DESIGN.md references: §4.3, §6, D4, D9, D31.
+
+// Command is a request to act on an external system.
+//
+// CRITICAL — `target_ref` is a STRING, not a resolved Target message.
+//
+// Callers name a target; they never construct one. Resolution (ref -> credentials
+// -> tenant -> region) happens inside Sekizui, gated by the caller's grants.
+// If Target were a wire message that callers populated, two guarantees would be
+// lost at once:
+//   1. agents would be able to influence credential selection (§9.5 — rejected)
+//   2. §6's "tenant absence is a compile error" would be unenforceable, because
+//      the resolver would no longer be the sole constructor
+//
+// This is the single most important shape decision in this file.
+message Command {
+  // e.g. "jira.create_issue". Must appear in the effective capability set.
+  string action = 1;
+
+  // e.g. "jira:acme". Resolved internally — see the note above.
+  string target_ref = 2;
+
+  // Action arguments. Validated against the action's registered input schema,
+  // same mechanism as envelope payloads (D40).
+  google.protobuf.Struct args = 3;
+
+  // Client-supplied idempotency key. REQUIRED for mutating actions.
+  //
+  // Agents retry with LLM-driven, undisciplined logic; without this a timeout
+  // becomes two Jira tickets. Matters more here than in a service with
+  // hand-written callers (§7.1).
+  string idempotency_key = 4;
+
+  // Set when this command was produced by a reflex rather than requested
+  // directly, so the resulting Decision can record what triggered it (§4.11.1).
+  Causation causation = 5;
+
+  // Evaluate and audit, but do not perform the side effect.
+  //
+  // Shadow mode for reflexes (§4.11.4 item 3) uses this; it is exposed on the
+  // wire so callers can dry-run too. Produces a Decision with
+  // VERDICT_WOULD_HAVE_FIRED.
+  bool dry_run = 6;
+
+  // Trace is the span context this command belongs to, for the INTERNAL
+  // propagation path (D216).
+  //
+  // **EXISTS FOR THE SAME REASON `causation` DOES, one field up: a command
+  // produced by a reflex was not requested over the wire, so there is no
+  // inbound `traceparent` header to read it from.** Without this a
+  // reflex-originated decision would lose the trace of the envelope that
+  // triggered it, and the causal chain a trace exists to show would break at
+  // exactly the interesting hop.
+  //
+  // **THE HEADER IS AUTHORITATIVE WHEN PRESENT.** For a wire caller this field
+  // is ignored, so the body can never override the header — not because the
+  // trace is trusted (it is not; nothing authorises on it, CONTRACTS 89) but
+  // because two sources for one value with no stated precedence is how they
+  // come to disagree silently.
+  Trace trace = 7;
+}
+
+// CommandResult is the outcome of a single command.
+//
+// One command performs exactly ONE action (D31). Multiple actions are multiple
+// commands — deliberately avoiding partial-failure semantics inside one request,
+// where there is no good answer for what the overall outcome was.
+message CommandResult {
+  // The audit Decision this produced. Always populated, including on denial —
+  // denials are the highest-value audit rows (§5.4).
+  string decision_id = 1;
+
+  Status status = 2;
+
+  // Action output, e.g. {"issue_key": "PROJ-123", "url": "..."}.
+  // Empty on denial or dry_run.
+  google.protobuf.Struct result = 3;
+
+  // Populated when status is DENIED or ESCALATED. Names the matched rule so the
+  // caller (or agent) learns *why*, not just that it failed.
+  string reason = 4;
+
+  // True when this response was served from the idempotency cache rather than by
+  // performing the action again.
+  bool deduplicated = 5;
+
+  // The stable taxonomy name for a DELIBERATE refusal: "denied", "residency",
+  // "rate_limited", "escalated", "spec_drift", "budget_exceeded",
+  // "invalid_argument". Empty when the command was not deliberately refused.
+  //
+  // WHY, WHEN `status` EXISTS. `status` is deliberately coarser: denied,
+  // unauthenticated and residency all map to STATUS_DENIED, because a caller
+  // mostly needs "refused" versus "the far side broke". Since D135 turned every
+  // deliberate refusal into a result rather than an error, that collapse is the
+  // ONLY thing a caller sees — the finer answer survived on the record and in
+  // the metric, and reached nobody.
+  //
+  // That matters most IN-PROCESS. The reflex engine calls Enforce directly
+  // (D18, D69) and receives a CommandResult, not an error, so it cannot ask
+  // fault.KindOf. From P5 it has to decide whether to retry, and the question
+  // it is really asking is RETRYABILITY — which `refused_by` cannot answer,
+  // because REFUSED_BY_ANZEN spans a forbid rule (never retry) and a
+  // concurrency cap (retry with backoff). Those differ in exactly the way the
+  // caller cares about.
+  //
+  // A STRING, NOT AN ENUM, matching `Envelope.stage` (CONTRACTS §3.3). The
+  // taxonomy is fault.Kind, which has eighteen members and grows with the
+  // system; mirroring it into a proto enum creates a second vocabulary to keep
+  // in step, and a divergence between them would be silent. This is the same
+  // word the metric label and the audit record already use, so a dashboard, a
+  // log line and this field read alike.
+  //
+  // ADDITIVE: `status` is unchanged, so no existing client is affected.
+  string kind = 6;
+
+  // The SEIREN (精錬) beside `result`, as on QueryResponse (D300, D317): what
+  // the `refines:` rules imposed on this caller made of the action's output.
+  // Absent when no rule is imposed; `result` stays silver.
+  Seiren seiren = 7;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_OK = 1;
+  STATUS_DENIED = 2;          // policy refused
+  STATUS_ESCALATED = 3;       // awaiting human approval
+  STATUS_RATE_LIMITED = 4;    // quota or fairness limit
+  STATUS_TARGET_ERROR = 5;    // the external system failed
+  STATUS_WOULD_HAVE_FIRED = 6; // dry_run only
+
+  // The request was well-formed enough to reach the enforcement path and wrong
+  // enough to refuse: `restore_target` on a target nobody withdrew (D133),
+  // `fire_anzen` naming something that is not a rule (D134).
+  //
+  // ADDED BECAUSE THESE REFUSALS HAD NO STATUS AT ALL. `fault.KindInvalidArgument`
+  // is Deliberate, so D135 turned both into results — and `Kind.Status()` had no
+  // case for it, so both arrived as STATUS_UNSPECIFIED. The zero value means
+  // "nobody set this", which is the one thing a deliberate refusal must never
+  // say. It survived because the test that covers it asserted `!= STATUS_OK`,
+  // and UNSPECIFIED satisfies that.
+  //
+  // NOT collapsed into DENIED: a denial is a grant to review and this is a
+  // request to correct, and §7.1's whole argument is that an operator should not
+  // have to infer which.
+  STATUS_INVALID_ARGUMENT = 7;
+
+  // The deployment cannot perform this command as configured (D201).
+  //
+  // **ADDED FOR THE SAME REASON STATUS_INVALID_ARGUMENT WAS**: `KindConfig` is
+  // now a deliberate refusal, so D135 makes it a RESULT — and with no case in
+  // `Kind.Status()` it would have reached callers as STATUS_UNSPECIFIED, the
+  // zero value meaning "nobody set this". D138 argues against mirroring the
+  // taxonomy into this enum, and this is not that: none of the existing members
+  // is honest here. DENIED says a policy refused, TARGET_ERROR says the far side
+  // failed — the misattribution D200 exists to remove — and INVALID_ARGUMENT
+  // points at the caller's arguments, which are fine.
+  //
+  // The coarse answer a caller branches on is "this cannot succeed until a
+  // human changes something here", which no other member carries.
+  STATUS_MISCONFIGURED = 8;
+}

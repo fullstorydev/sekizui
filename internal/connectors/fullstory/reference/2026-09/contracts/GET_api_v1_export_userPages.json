@@ -1,0 +1,24 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/api/v1/export/userPages",
+  "operation_id": "get-user-pages",
+  "title": "Get User Pages",
+  "description": "Get a user's visited pages.\nThe User Pages file contains a series of all the pages that the user has visited, including the raw event data recorded on each page.\n### Additional Information * [Using Download User Pages and Download User Events](https://help.fullstory.com/hc/en-us/articles/360020624454)",
+  "permission": "Architect",
+  "servers": [
+    "https://export.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/exports/get-user-pages/",
+  "parameters": [
+    {
+      "name": "uid",
+      "description": "The application-specific ID you've given to the user. You will have passed that ID through the [FS.identify](/browser/identification/identify-users/) Browser API function.",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ]
+}

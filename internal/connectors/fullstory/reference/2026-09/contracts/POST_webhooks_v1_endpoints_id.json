@@ -1,0 +1,124 @@
+{
+  "tier": "anywhere",
+  "method": "POST",
+  "path": "/webhooks/v1/endpoints/{id}",
+  "operation_id": "UpdateEndpoint",
+  "title": "Update Endpoint",
+  "description": "This API can be used to change the destination URL, configured events, signing secret, and the enabled status of the webhook endpoint.",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/anywhere/v1/webhooks/update-endpoint/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "ID of the endpoint that is returned by the [Create Endpoint](../create-endpoint) or the [List Endpoints](../list-endpoints) API.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "example": {
+      "url": "https://example.com/fullstory-webhooks",
+      "secret": "w7ixQjN7QEiWRwXUFfXneA",
+      "eventTypes": [
+        {
+          "eventName": "recording.event.custom",
+          "subcategory": "CW8tQUJDLW5hMRIOCgRTZWF0GgZzeXN0ZW0SEwoHU2VnbWVudBoIZXZlcnlvbmUSEQoIU2VhcmNoaWUaBTQ5MTY4EhAKBUFsZXJ0EICAgICAq"
+        }
+      ]
+    },
+    "properties": {
+      "disabled": {
+        "type": "boolean",
+        "description": "If present and true, the given endpoint will be disabled and stop receiving events. Otherwise, the given endpoint will be enabled."
+      },
+      "event_types": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "event_name": {
+              "type": "string",
+              "description": "The name of an event. There is a fixed set of supported event names, each representing\na different kind of event that can be sent to a webhook endpoint. This is the same value\nthat is sent to a webhook endpoint, in the \"eventName\" field of the request payload."
+            },
+            "subcategory": {
+              "type": "string",
+              "description": "Optional subcategory. Some event types require further specifying a subcategory. For\nexample, the \"recording.event.custom\" event requires specifying a particular\ncustom event as the subcategory. This field will be empty for kinds of events that\ndo not require a subcategory. When specified, this needs to be the `subcategory` returned\nfrom [List Event Subcategories](../list-event-subcategories) and not the `display_name`."
+            }
+          }
+        },
+        "description": "The new set of event types that the endpoint should receive. If absent or an empty list, the set of events will not be changed."
+      },
+      "url": {
+        "type": "string",
+        "description": "The new URL for the endpoint. Note that changing the URL also changes the ID of the endpoint. See the `id` property in the response for the endpoint's new ID. If absent or an empty string, the URL will not be changed."
+      },
+      "secret": {
+        "type": "string",
+        "description": "The new secret for the endpoint used for signing payloads. If absent or an empty string, the secret will not be changed."
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "example": {
+      "id": "aHR0cHM6Ly9leGFtcGxlLmNvbS9mdWxsc3Rvcnktd2ViaG9va3M",
+      "created": "2020-04-01T21:53:58.200Z",
+      "modified": "2020-04-01T21:53:58.200Z",
+      "enabled": true,
+      "url": "https://example.com/fullstory-webhooks",
+      "eventTypes": [
+        {
+          "eventName": "recording.event.custom",
+          "subcategory": "CgsiCW8tQUJDLW5hMRIOCgRTZWF0GgZzeXN0ZW0SEwoHU2VnbWVudBoIZXZlcnlvbmUSEQoIU2VhcmNoaWUaBTQ5MTY4EhAKBUFsZXJ0EICAgICAqJkL"
+        }
+      ]
+    },
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "A unique ID for the endpoint"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The time when the endpoint was created"
+      },
+      "modified": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The time when the endpoint was last modified"
+      },
+      "enabled": {
+        "type": "boolean",
+        "description": "Whether or not this endpoint is active"
+      },
+      "url": {
+        "type": "string",
+        "description": "The destination URL of this endpoint"
+      },
+      "event_types": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "event_name": {
+              "type": "string",
+              "description": "The name of an event. There is a fixed set of supported event names, each representing\na different kind of event that can be sent to a webhook endpoint. This is the same value\nthat is sent to a webhook endpoint, in the \"eventName\" field of the request payload."
+            },
+            "subcategory": {
+              "type": "string",
+              "description": "Optional subcategory. Some event types require further specifying a subcategory. For\nexample, the \"recording.event.custom\" event requires specifying a particular\ncustom event as the subcategory. This field will be empty for kinds of events that\ndo not require a subcategory. When specified, this needs to be the `subcategory` returned\nfrom [List Event Subcategories](../list-event-subcategories) and not the `display_name`."
+            }
+          }
+        },
+        "description": "A list of the event types that are currently configured to be sent to this endpoint"
+      }
+    }
+  }
+}

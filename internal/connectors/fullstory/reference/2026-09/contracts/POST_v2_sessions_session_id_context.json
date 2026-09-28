@@ -1,0 +1,341 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/sessions/{session_id}/context",
+  "operation_id": "GenerateContext",
+  "title": "Generate Context",
+  "description": "Return the set of events for the specified session formatted for input into a Generative AI. The format and contents of the response are controlled by the Context specified to optimize the information included for the intended use case.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/generate-context/",
+  "parameters": [
+    {
+      "name": "session_id",
+      "description": "The UTF-8 encoded ID of the session for which to generate context data. To retrieve the Session ID you may use the appropriate Get Session Details API for [Web](/browser/get-session-details/), [iOS](/mobile/ios/get-session-details/), or [Android](/mobile/android/get-session-details/). As Session IDs include `:` separators the ID must be URL encoded using the `%3A` substitution. [Learn more](https://help.fullstory.com/hc/en-us/articles/34050890025111-Working-with-session-ID-values-for-use-with-the-server-API).",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "slice": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "default": "FIRST",
+            "title": "return earliest or latest events as defined",
+            "type": "string",
+            "enum": [
+              "UNSPECIFIED",
+              "FIRST",
+              "LAST",
+              "TIMESTAMP"
+            ]
+          },
+          "event_limit": {
+            "type": "integer",
+            "format": "int32",
+            "title": "only keep the specified number of events if this is greater than zero"
+          },
+          "duration_limit_ms": {
+            "type": "string",
+            "format": "int64",
+            "title": "only keep events within the specified time duration from the beginning or end time"
+          },
+          "start_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If specified, the event limit and duration limit will be applied to the time beginning at this timestamp.",
+            "title": "apply event_limit and duration_limit_ms to the time beginning at start_timestamp"
+          },
+          "end_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If specified, only events before this timestamp will be included in the context."
+          }
+        }
+      },
+      "context": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Controls the session context elements to include, takes precedence over individual inclusion fields. Can be 'user', 'org', 'location', 'device'. If not specified and not excluded, all context elements are included."
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Controls the session context elements to exclude, takes precedence over individual exclusion fields. Can be 'user', 'org', 'location', 'device'. If not specified and not excluded, all context elements are included."
+          },
+          "exclude_org_context": {
+            "type": "boolean"
+          },
+          "exclude_user_context": {
+            "type": "boolean"
+          },
+          "exclude_location": {
+            "type": "boolean"
+          },
+          "exclude_device": {
+            "type": "boolean"
+          },
+          "exclude_descriptions": {
+            "type": "boolean",
+            "description": "Deprecated: use event.include_descriptions instead (takes precedence)."
+          }
+        }
+      },
+      "events": {
+        "type": "object",
+        "properties": {
+          "exclude_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to exclude from the context. Valid event types: `navigate`, `click`, `dead-click`, `error-click`, `rage-click`, `input-change`, `network-error`, `console-error`, `mouse-thrash`, `highlight`, `copy`, `paste`, `element-seen`. See the [AI Session Summary API documentation](/anywhere/activation/ai-session-summary-api/#includingexcluding-event-types) for detailed descriptions of each event type."
+          },
+          "include_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to include in the context. If specified, only these event types will be included. Valid event types: `navigate`, `click`, `dead-click`, `error-click`, `rage-click`, `input-change`, `network-error`, `console-error`, `mouse-thrash`, `highlight`, `copy`, `paste`, `element-seen`. See the [AI Session Summary API documentation](/anywhere/activation/ai-session-summary-api/#includingexcluding-event-types) for detailed descriptions of each event type."
+          },
+          "exclude_defined_events": {
+            "type": "boolean"
+          },
+          "exclude_api_events": {
+            "type": "boolean"
+          },
+          "exclude_event_timestamps": {
+            "type": "boolean"
+          },
+          "exclude_selectors": {
+            "type": "boolean"
+          },
+          "include_selector_tags": {
+            "type": "boolean"
+          },
+          "trim_to_last_n_selectors": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "include_tab_index": {
+            "type": "boolean"
+          },
+          "include_descriptions": {
+            "type": "boolean"
+          }
+        }
+      },
+      "cache": {
+        "type": "object",
+        "properties": {
+          "enable_event_cache": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "context_data": {
+        "type": "object",
+        "properties": {
+          "context": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string"
+              },
+              "session_url": {
+                "type": "string"
+              },
+              "org_context": {
+                "type": "object",
+                "properties": {
+                  "org_id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "industry": {
+                    "type": "string"
+                  },
+                  "domain": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  }
+                }
+              },
+              "user_context": {
+                "type": "object",
+                "properties": {
+                  "user_uid": {
+                    "type": "string"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "location_context": {
+                "type": "object",
+                "properties": {
+                  "country": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  }
+                }
+              },
+              "device_context": {
+                "type": "object",
+                "properties": {
+                  "browser": {
+                    "type": "string"
+                  },
+                  "operating_system": {
+                    "type": "string"
+                  },
+                  "screen_size": {
+                    "type": "object",
+                    "properties": {
+                      "height_pixels": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "width_pixels": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  },
+                  "viewport_size": {
+                    "type": "object",
+                    "properties": {
+                      "height_pixels": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "width_pixels": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              },
+              "session_created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "The URL of the web page or mobile webview."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title of the web page or mobile webview."
+                },
+                "events": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "screenshot_url": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "properties": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "tab": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "1-based index of browser tabs in a web session, omitted for non-web sessions."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "example": {
+      "context_data": {
+        "context": {
+          "org_context": {},
+          "user_context": {
+            "properties": {}
+          },
+          "location_context": {},
+          "device_context": {
+            "screen_size": {},
+            "viewport_size": {}
+          }
+        },
+        "pages": [
+          {
+            "events": [
+              {
+                "properties": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

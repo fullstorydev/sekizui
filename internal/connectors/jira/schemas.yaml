@@ -1,0 +1,32 @@
+# jira's data schemas (D279). CLOSED BY DEFAULT: this is the ALLOWLIST of what
+# an issue read carries into Sekizui — Jira returns far more, and every custom
+# field is stripped until this connector names it.
+- type: jira.issue.v1
+  schema:
+    type: object
+    properties:
+      id: {type: string}
+      key: {type: string}
+      fields:
+        type: object
+        properties:
+          summary: {type: string}
+          description: {type: string}
+          status:
+            type: object
+            properties:
+              name: {type: string}
+          reporter:
+            type: object
+            properties:
+              displayName: {type: string}
+              emailAddress: {type: string}
+
+# What a comment write returns into Sekizui (D283): its ids, for the audit
+# join. Jira echoes the whole comment body and author; none of it is kept.
+- type: jira.comment.v1
+  schema:
+    type: object
+    properties:
+      id: {type: string}
+      key: {type: string}

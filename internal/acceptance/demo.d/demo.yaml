@@ -1,0 +1,35 @@
+# THE DEMO DEPLOYMENT (D315) — what `make run` serves by default, so `make demo` can show on a
+# real binary what the in-process acceptance steps prove.
+#
+# COMPOSED, NEVER OVERRIDDEN (D278): acceptance.yaml, the Fullstory connector's suggested anzen
+# ceiling and its suggested presets (D327) are symlinked beside this file, so what the demo runs is
+# what ships and what the suite tests. This file adds the showcase grant, and marks the deployment a DEMONSTRATION: the binary
+# refuses to boot it without `-demo`, so it can never be one misplaced directory from production.
+demo: true
+
+grants:
+  # A WILDCARD over the Fullstory connector's 65 actions, on purpose: the anzen ceiling must hold
+  # where policy says yes. `agent:showcase` has a certificate and no other grant, so no in-process
+  # step's patch touches it.
+  - principal: agent:showcase
+    allow:
+      - {action: "fullstory.*", target: fs:fixture}
+      # THE SEIREN, VISIBLE ON A REAL BINARY (D317, CONTRACTS 147): kata's read and write, each
+      # refined by a rule kata ships. kata is in memory and dials nothing, so the demo needs no
+      # fixture host — the Fullstory driver dials only Fullstory's own hosts (D288).
+      - {action: kata.read, target: kata:alpha}
+      # THE RESIDENCY CEILING, VISIBLE ON A REAL BINARY (D324, P4 step 7): a read of kata:beta,
+      # an eu target, GRANTED — so what refuses it on this us instance is the ceiling, not policy.
+      - {action: kata.read, target: kata:beta}
+      - {action: kata.create_issue, target: kata:alpha}
+      # A PRESET, VISIBLE ON A REAL BINARY (D327, P5 step 10): the connector's presets.yaml is
+      # symlinked beside this file, as a deployment drops it in, and this grant names one. Describe
+      # lists exactly its nine read actions on fs:live, and a read outside it is refused by policy.
+      - {preset: fullstory.session_review, target: fs:live}
+
+# kata's two refines rules, imposed on the showcase principal alone — staged by audience (D298).
+# P4 step 20d reads the seiren beside a kata row and beside a kata write's result, from the
+# running instance under `make demo` and from this same file in-process.
+refinements:
+  - {rule: kata.read_receipt, target: kata:alpha, for: [agent:showcase]}
+  - {rule: kata.write_receipt, target: kata:alpha, for: [agent:showcase]}

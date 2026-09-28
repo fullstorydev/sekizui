@@ -1,0 +1,29 @@
+{
+  "tier": "v2",
+  "method": "DELETE",
+  "path": "/v2/visit_profile/{id}",
+  "operation_id": "Delete",
+  "title": "Delete Profile",
+  "description": "Delete the summarization Profile that specifies both prompting instructions and session context configuration.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/delete/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "Client defined ID representing this profile to be used in profile management API calls and to specify when performing session analysis.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {},
+    "example": {}
+  }
+}

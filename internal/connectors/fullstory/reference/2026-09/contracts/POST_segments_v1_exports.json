@@ -1,0 +1,133 @@
+{
+  "tier": "v1",
+  "method": "POST",
+  "path": "/segments/v1/exports",
+  "operation_id": "CreateSegmentExport",
+  "title": "Create Export",
+  "description": "Schedules an export based on the provided segment. The progress and results of the export can be fetched from the [operations API](../../operations/get-operation-status).\nSegment Export is an Enterprise or Advanced pricing tier add-on. See [pricing page](https://www.fullstory.com/plans) for more details.\n### Export Types Two types of segment-related data are available: individuals and events. #### Individual Exports An individual export will contain information about each of the individuals that match the provided segment. The fields that are available through this export are documented [here](../../segments/export-fields/). #### Event Exports An event export will contain events performed by individuals that match the provided segment. The fields that are available through this export are documented [here](../../segments/export-fields/). Events are selected based on the `eventDetails.scope` parameter. In order of increasing scope: * `SCOPE_EVENT`: only events that match the segment's event criteria. * `SCOPE_PAGES`: all events from each page where users performed matching event criteria. * `SCOPE_SESSIONS`: all events from each session where users performed matching event criteria. * `SCOPE_INDIVIDUAL`: all events for each individual who performed matching event criteria. ### Time Ranges There are two time ranges that can be specified for an export: `time_range` and `segment_time_range`All segments, as defined in Fullstory, have a time range associated with them. This time range is used to determine how the search filters apply to the data. For example, as segment may be defined to include events for users who visited a page in the last 30 days. The `time_range` parameter is used to filter the data for the provided segment. Using the previous example, 30 days of data could be many GB of data. The `time_range` parameter can be used to limit the export to a smaller,more manageable file. If the segment does not include a large amount of data, the time range start and end can be set to empty strings to include all data. The `segment_time_range` parameter can be used to override the segment's time range. The most common use case for this is for bulk data export, which should use the 'everyone' segment and override the segment's time range (which defaults to the last 30 days) to match the `time_range` parameter. Another example would be if a segment is defined as the last 30 days, but a specific month's worth of data is required. In this case, the `segment_time_range` would be set to the specific month's time range and the `time_range` would be used to break the data into smaller chunks. ### Additional Information * [Creating an export from the UI](https://help.fullstory.com/hc/en-us/articles/360055602174-Search-Export-Overview)",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/segments/create-segment-export/",
+  "request_body": {
+    "type": "object",
+    "example": {
+      "segmentId": "everyone",
+      "type": "TYPE_INDIVIDUAL",
+      "format": "FORMAT_CSV",
+      "timeRange": {
+        "start": "2020-10-01T00:00:00Z",
+        "end": "2020-11-01T00:00:00Z"
+      },
+      "segmentTimeRange": {
+        "start": "2020-10-01T00:00:00Z",
+        "end": "2020-11-01T00:00:00Z"
+      }
+    },
+    "properties": {
+      "segmentId": {
+        "type": "string",
+        "description": "An Id for a segment as returned from the [list segments](../list-segments) API endpoint or found in the url path of the segment.\nThis can include built-in segment Ids such as the \"everyone\" segment."
+      },
+      "type": {
+        "description": "Which kind of data to export. `TYPE_EVENT` will export the event data for the corresponding segment and\n`TYPE_INDIVIDUAL` will export individuals in the segment.",
+        "type": "string",
+        "enum": [
+          "TYPE_EVENT",
+          "TYPE_INDIVIDUAL"
+        ],
+        "default": "TYPE_INVALID"
+      },
+      "format": {
+        "description": "Determines the data format of the export. Options are `FORMAT_JSON`, `FORMAT_CSV`, and `FORMAT_NDJSON`.\n**Note**: If using CSV format, it is highly recommended that `fields` are also explicitly provided. Since new\nfields will be added as Fullstory adds more features, providing explicit fields will result in deterministic\nheaders. For a single version of the API, fields will never be removed or renamed.",
+        "type": "string",
+        "enum": [
+          "FORMAT_NDJSON",
+          "FORMAT_CSV",
+          "FORMAT_JSON"
+        ],
+        "default": "FORMAT_INVALID"
+      },
+      "timeRange": {
+        "description": "Restricts the exported data to the provided time range. For `TYPE_EVENT` exports, this is based on the\n`EventStart` time. For `TYPE_INDIVIDUAL`, only users that performed events within the provided time range are\nexported.\n**Note**: this does not have any effect on the underlying segment's time range.",
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "UTC RFC 3339 timestamp or an empty string. If an empty string, this will be interpreted as \"forever in the past\"."
+          },
+          "end": {
+            "type": "string",
+            "description": "UTC RFC 3339 timestamp or an empty string. If an empty string, this will be interpreted as \"up to the time of\nthe request\"."
+          }
+        }
+      },
+      "segmentTimeRange": {
+        "description": "If provided, this time range overrides the time range for the provided segment.",
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "UTC RFC 3339 timestamp or an empty string. If an empty string, this will be interpreted as \"forever in the past\"."
+          },
+          "end": {
+            "type": "string",
+            "description": "UTC RFC 3339 timestamp or an empty string. If an empty string, this will be interpreted as \"up to the time of\nthe request\"."
+          }
+        }
+      },
+      "now": {
+        "type": "string",
+        "format": "date-time",
+        "title": "Now will override the now time for relative timestamps. This can be used to\npin long-running queries, or exports that must wait for a long queue, to a\nspecific timestamp for relative time ranges. (Defaults to time that query\nis run.)"
+      },
+      "timezone": {
+        "type": "string",
+        "description": "Timezone will be used for calculating relative dates (defaults to UTC). If\nprovided, it must be a valid IANA timezone."
+      },
+      "fields": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Restricts the set of fields that are included in the export. If unspecified, all fields will be exported.\nCustom variables (such as user and custom event properties) can also be specified. These should be specified like\n`user_MyUserVar_str` or `evt_MyEventVar_int`. You can also get all of these by specifying them as like: `user_*`\nor `evt_*`. **Note**: This is not a general glob pattern, just a special value.\nIf unspecified or empty, the default set of fields and all custom variables will be exported."
+      },
+      "eventDetails": {
+        "description": "If the export type is `TYPE_EVENT` the `scope` field specifies\n\"scope\" of the events to be exported relative to the events matching the segment\u2019s event filters.",
+        "type": "object",
+        "properties": {
+          "scope": {
+            "default": "SCOPE_EVENTS",
+            "description": "Specifies \"scope\" of the events to be exported relative to the events matching the segment\u2019s event filters.",
+            "type": "string",
+            "enum": [
+              "SCOPE_EVENTS",
+              "SCOPE_INDIVIDUALS",
+              "SCOPE_SESSIONS",
+              "SCOPE_PAGES"
+            ]
+          }
+        }
+      }
+    },
+    "required": [
+      "segmentId",
+      "type",
+      "format",
+      "timeRange"
+    ]
+  },
+  "response": {
+    "type": "object",
+    "example": {
+      "operationId": "U0VBUkmIX1VYUE9SVFplcmRteUlPV3YyV3RnRVZCdxdSeVhScnZVcDhVYUdaY3BibEp4RGIxOVZV"
+    },
+    "properties": {
+      "operationId": {
+        "type": "string",
+        "description": "OperationId can be used with the [operations API](../../operations/get-operation-status) to track the status of\nthe export."
+      }
+    }
+  }
+}

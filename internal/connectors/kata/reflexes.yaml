@@ -1,0 +1,24 @@
+# kata's refines rules (D299, D317) — the reference driver teaches the Refiner
+# contract as it teaches every other: small, complete, and run by the suite.
+# AVAILABLE BY NAME, imposed only by a deployment's `refinements:`.
+#
+# Each refines one of kata's results into one key of `kata.receipt.v1`. A read
+# returns one row and a write one object, so each list holds one item — enough
+# to show a seiren beside `QueryResponse.rows` AND beside `CommandResult.result`
+# (CONTRACTS 145), which no other in-tree connector's write result can.
+
+- name: kata.read_receipt
+  refines: kata.read_result.v1
+  into: kata.receipt.v1
+  key: read
+  where:
+    - {path: id, op: exists}
+  list: {carry: [id, at], limit: 1}
+
+- name: kata.write_receipt
+  refines: kata.write_result.v1
+  into: kata.receipt.v1
+  key: write
+  where:
+    - {path: action, op: exists}
+  list: {carry: [action, at], limit: 1}

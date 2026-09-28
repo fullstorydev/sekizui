@@ -1,0 +1,120 @@
+{
+  "tier": "anywhere",
+  "method": "GET",
+  "path": "/webhooks/v1/endpoints",
+  "operation_id": "ListEndpoints",
+  "title": "List Endpoints",
+  "description": "Page through all of the configured endpoints. If the response contains a `nextPaginationToken` property, then there are more results which can be retrieved by making another call and using that token as the next request's `paginationToken`.",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/anywhere/v1/webhooks/list-endpoints/",
+  "parameters": [
+    {
+      "name": "pagination_token",
+      "description": "Optional pagination token, for retrieving further results after a previous page request.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "Optional limit to the number of endpoints returned. If not specified,\nthe max (100) endpoints are returned.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "endpoints": [
+        {
+          "id": "aHR0cDovL2Zvby5iYXIv",
+          "created": "2020-03-26T19:16:57.291Z",
+          "modified": "2020-04-01T21:46:42.412Z",
+          "enabled": true,
+          "url": "https://foo.bar/",
+          "eventTypes": [
+            {
+              "eventName": "note.created"
+            }
+          ]
+        }
+      ],
+      "nextPaginationToken": "aHR0cDovL2Zvby5iYXIv"
+    },
+    "properties": {
+      "endpoints": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "example": {
+            "id": "aHR0cHM6Ly9leGFtcGxlLmNvbS9mdWxsc3Rvcnktd2ViaG9va3M",
+            "created": "2020-04-01T21:53:58.200Z",
+            "modified": "2020-04-01T21:53:58.200Z",
+            "enabled": true,
+            "url": "https://example.com/fullstory-webhooks",
+            "eventTypes": [
+              {
+                "eventName": "recording.event.custom",
+                "subcategory": "CgsiCW8tQUJDLW5hMRIOCgRTZWF0GgZzeXN0ZW0SEwoHU2VnbWVudBoIZXZlcnlvbmUSEQoIU2VhcmNoaWUaBTQ5MTY4EhAKBUFsZXJ0EICAgICAqJkL"
+              }
+            ]
+          },
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "A unique ID for the endpoint"
+            },
+            "created": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The time when the endpoint was created"
+            },
+            "modified": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The time when the endpoint was last modified"
+            },
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether or not this endpoint is active"
+            },
+            "url": {
+              "type": "string",
+              "description": "The destination URL of this endpoint"
+            },
+            "event_types": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "event_name": {
+                    "type": "string",
+                    "description": "The name of an event. There is a fixed set of supported event names, each representing\na different kind of event that can be sent to a webhook endpoint. This is the same value\nthat is sent to a webhook endpoint, in the \"eventName\" field of the request payload."
+                  },
+                  "subcategory": {
+                    "type": "string",
+                    "description": "Optional subcategory. Some event types require further specifying a subcategory. For\nexample, the \"recording.event.custom\" event requires specifying a particular\ncustom event as the subcategory. This field will be empty for kinds of events that\ndo not require a subcategory. When specified, this needs to be the `subcategory` returned\nfrom [List Event Subcategories](../list-event-subcategories) and not the `display_name`."
+                  }
+                }
+              },
+              "description": "A list of the event types that are currently configured to be sent to this endpoint"
+            }
+          }
+        },
+        "description": "The list of endpoints, up to the limit."
+      },
+      "next_pagination_token": {
+        "type": "string",
+        "description": "If present, this pagination token can be supplied in a subsequent request to get\nthe next batch of results.\nIf not present, there are no further results."
+      }
+    }
+  }
+}

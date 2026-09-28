@@ -1,0 +1,83 @@
+# Static analysis. Wired BEFORE CI exists, deliberately.
+#
+# §6 item 4 requires banning package-level mutable state "via CI lint", with the
+# reasoning that "a lint rule makes regression structurally impossible rather
+# than a review catch". That claim was tested and failed: internal/auditwal
+# shipped a package-level counter, review did not catch it, and it survived until
+# an audit went looking. The rule existed; the enforcement did not.
+#
+# So the linter lands now and CI wires it later. A local `make lint` that
+# actually refuses is worth more than a CI job that does not exist yet.
+
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  default: none
+  enable:
+    # --- the one the design explicitly asks for -----------------------------
+    # §6 item 4. Package-level mutable state is what Lexicon violated
+    # everywhere (module singletons + service registry), and it is shared by
+    # every tenant in a process and every test in a package.
+    - gochecknoglobals
+
+    # --- correctness --------------------------------------------------------
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+
+    # errcheck: an ignored error in a governance system is a decision nobody
+    # recorded. Exclusions below are narrow and justified.
+    - errcheck
+
+    # nilerr catches `if err != nil { return nil }` — returning success on a
+    # failure path. Related in spirit to the typed-nil trap that shipped in
+    # fault.Wrap, though that specific bug needs `nilness` from x/tools.
+    - nilerr
+
+    # bodyclose: an unclosed HTTP response body leaks a connection, and every
+    # driver from P2 onward makes outbound calls.
+    - bodyclose
+
+    # --- style that carries meaning ----------------------------------------
+    # Enforces the `ctx context.Context` first-parameter convention the whole
+    # codebase depends on for cancellation and deadlines.
+    - containedctx
+    - contextcheck
+
+  settings:
+    errcheck:
+      # Writing to an http.ResponseWriter fails when the client has already
+      # disconnected, and there is nothing useful to do about it — the response
+      # is gone either way. Everything else must be checked.
+      exclude-functions:
+        - fmt.Fprintln
+        - fmt.Fprintf
+        - fmt.Fprint
+
+  exclusions:
+    rules:
+      # Generated protobuf is package-level state by construction, and is not
+      # ours to restructure — D34 commits it, we do not edit it.
+      - path: pkg/schema/
+        linters:
+          - gochecknoglobals
+          - unused
+          - staticcheck
+          - errcheck
+
+      # Test files may hold fixtures at package level: the concurrency argument
+      # for banning globals does not apply to one package's test data.
+      - path: _test\.go
+        linters:
+          - gochecknoglobals
+          - errcheck
+
+issues:
+  # Report everything. A cap silently hides findings, which is the same failure
+  # mode as a lint that does not run at all.
+  max-issues-per-linter: 0
+  max-same-issues: 0

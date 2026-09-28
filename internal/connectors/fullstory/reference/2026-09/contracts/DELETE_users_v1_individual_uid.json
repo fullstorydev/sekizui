@@ -1,0 +1,37 @@
+{
+  "tier": "v1",
+  "method": "DELETE",
+  "path": "/users/v1/individual/{uid}",
+  "operation_id": "delete-user",
+  "title": "Delete User",
+  "description": "Delete all user data related to a user identified in the browser via the [FS.identify](/browser/identification/identify-users) Browser API function. This includes sessions, events and custom user variables, as well as all of the raw page files and any corresponding session data on our servers.\nThis call kicks off a background operation and returns immediately with an operation ID that you can use to query the status of the deletion using the [Get Operation](/server/v1/operations/get-operation-status) HTTP API endpoint.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/users/delete-user/",
+  "parameters": [
+    {
+      "name": "uid",
+      "description": "The application-specific ID you've given to the user. You will have\npassed that ID through the [FS.identify](/browser/identification/identify-users) Browser API function.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "id": "YnVsa3k6NTc0OTU2MzMzMTcwNjg4MA=="
+    },
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "The ID of the initiated operation"
+      }
+    },
+    "title": "The id of the initiated operation"
+  }
+}

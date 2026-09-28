@@ -1,0 +1,354 @@
+{
+  "tier": "v1",
+  "method": "POST",
+  "path": "/settings/recording/v1/privacy:element-block-rules",
+  "operation_id": "UpdateElementBlockRules",
+  "title": "Update Element Block Rules (Deprecated)",
+  "description": "Updates the current element block rules privacy settings.",
+  "permission": "Admin",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/settings/update-element-block-rules/",
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "addElementBlocks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string",
+              "description": "A CSS selector identifying the elements that this block rule should apply to.\nRequired."
+            },
+            "groupId": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Membership in a privacy rule group.\nDefaults to 0, means no group."
+            },
+            "consentControlled": {
+              "type": "boolean",
+              "description": "If true, indicates that it is safe to record these elements in sessions with user consent.\nOptional. Defaults to false."
+            },
+            "notes": {
+              "type": "string",
+              "description": "Administrator notes about this rule.\nOptional."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "BLOCK_EXCLUDE",
+                "BLOCK_MASK",
+                "BLOCK_UNMASK"
+              ],
+              "default": "UNSET",
+              "description": "What type of block rule this is. See Fullstory privacy documentation for details.\nOptional. Defaults to BLOCK_EXCLUDE."
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "ALL_SESSIONS",
+                "NO_SESSIONS",
+                "PREVIEW_SESSIONS_ONLY",
+                "LIVE_SESSIONS_ONLY"
+              ],
+              "default": "ALL_SESSIONS",
+              "description": "RuleScope is used to limit the scope exclusion rules\nso a customer can dogfood a rule in \"audited\" sessions they record\nthemselves before turning the rule on for all of their users.\n\n - ALL_SESSIONS: Apply always (default).\n - NO_SESSIONS: Never apply.\n - PREVIEW_SESSIONS_ONLY: Apply only for \"previewed\" sessions e.g. to test the addition of a BLOCK_UNMASK rule.\n - LIVE_SESSIONS_ONLY: Apply only for non-preview sessions e.g. to test the removal of an BLOCK_EXCLUDE rule."
+            },
+            "ruleExceptions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "selector": {
+                    "type": "string",
+                    "description": "CSS selectors identifying elements that this block rule should NOT apply to."
+                  }
+                },
+                "title": "------ Element Block Rules ------"
+              },
+              "description": "CSS selectors identifying elements that this block rule should NOT apply to."
+            }
+          }
+        }
+      },
+      "updateElementBlocks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "description": "Subset of properties from ElementBlockRules used for uniquely identifying the ElementBlockRules.\nRequired.",
+              "type": "object",
+              "properties": {
+                "selector": {
+                  "type": "string",
+                  "description": "A CSS selector identifying the elements that this block rule should apply to."
+                },
+                "groupId": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "Membership in a privacy rule group.\nDefaults to 0, means no group."
+                }
+              }
+            },
+            "update": {
+              "description": "The desired update values for the ElementBlockRules\nRequired.",
+              "type": "object",
+              "properties": {
+                "selector": {
+                  "type": "string",
+                  "description": "A CSS selector identifying the elements that this block rule should apply to.\nOptional. No-op when not provided, or if an empty string is provided."
+                },
+                "consentControlled": {
+                  "type": "boolean",
+                  "description": "If true, indicates that it is safe to record these elements in sessions with user consent.\nOptional. No-op when not provided."
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Administrator notes about this rule.\nOptional. No-op when not provided. Providing an empty string will remove any existing notes."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "BLOCK_EXCLUDE",
+                    "BLOCK_MASK",
+                    "BLOCK_UNMASK"
+                  ],
+                  "default": "UNSET",
+                  "description": "What type of block rule this is. See Fullstory privacy documentation for details.\nOptional. No-op when not provided."
+                },
+                "scope": {
+                  "description": "The scope of the rule, which determines which sessions are affected.\nOptional. No-op when not provided.",
+                  "type": "string",
+                  "enum": [
+                    "ALL_SESSIONS",
+                    "NO_SESSIONS",
+                    "PREVIEW_SESSIONS_ONLY",
+                    "LIVE_SESSIONS_ONLY"
+                  ],
+                  "default": "UNSET",
+                  "title": "SessionScope includes all the possible RuleScope enums, but adds an UNSET default.\nSince RuleScope doesn't have a UNSET, we can't safely perform no-op.\nUsing a wrapper like RuleScopeUpdate makes the API inconsistent for callers,\nas it requires callers to provide a \"value\" field, which looks like below (json):\n{ \"rule_scope\": { \"value\": \"ALL_SESSIONS\" } }.\nSo, instead, the new SessionScope enum defaults to UNSET that allows a easy notion of \"no-op\"\nNB: It's also important to know that now the actual int value is different from that in RuleScope,\nmaking it necessary to use the string representations, not integers!"
+                },
+                "ruleExceptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  },
+                  "description": "A list of exceptions identifying elements by CSS selectors that this block rule should NOT apply to.\nThe entire list will be replaced, any existing exceptions will be cleared if not provided,\nor if an empty array [] is provided."
+                },
+                "groupId": {
+                  "type": "integer",
+                  "format": "int64",
+                  "title": "Membership in a privacy rule group.\nOptional. No-op when not provided"
+                }
+              }
+            }
+          }
+        }
+      },
+      "removeElementBlocks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string",
+              "description": "A CSS selector identifying the elements that this block rule should apply to."
+            },
+            "groupId": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Membership in a privacy rule group.\nDefaults to 0, means no group."
+            }
+          },
+          "description": "ElementBlockRuleKey represents the subset of ElementBlockRules\nproperties which, in conjunction, identify an element privacy rule.\nFuture properties added to this message should have wrapper types\n(see ElementBlockRulesUpdate) iff they're optional."
+        }
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "example": {
+      "element_blocks": [
+        {
+          "selector": "input[type=password]",
+          "consent": false,
+          "notes": "",
+          "type": "BLOCK_EXCLUDE",
+          "scope": "ALL_SESSIONS",
+          "lastUpdated": "0001-01-01T00:00:00Z",
+          "label": "",
+          "targetingConditions": null,
+          "editable": "EDITABLE_DESCRIPTION_ONLY",
+          "exceptionSelectors": [],
+          "groupId": 0
+        }
+      ]
+    },
+    "properties": {
+      "elementBlocks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "consent": {
+              "type": "boolean"
+            },
+            "notes": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "BLOCK_EXCLUDE",
+                "BLOCK_MASK",
+                "BLOCK_UNMASK"
+              ],
+              "default": "UNSET"
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "ALL_SESSIONS",
+                "NO_SESSIONS",
+                "PREVIEW_SESSIONS_ONLY",
+                "LIVE_SESSIONS_ONLY"
+              ],
+              "default": "ALL_SESSIONS",
+              "description": "RuleScope is used to limit the scope exclusion rules\nso a customer can dogfood a rule in \"audited\" sessions they record\nthemselves before turning the rule on for all of their users.\n\n - ALL_SESSIONS: Apply always (default).\n - NO_SESSIONS: Never apply.\n - PREVIEW_SESSIONS_ONLY: Apply only for \"previewed\" sessions e.g. to test the addition of a BLOCK_UNMASK rule.\n - LIVE_SESSIONS_ONLY: Apply only for non-preview sessions e.g. to test the removal of an BLOCK_EXCLUDE rule."
+            },
+            "lastUpdated": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "label": {
+              "type": "string"
+            },
+            "targetingConditions": {
+              "type": "object",
+              "properties": {
+                "privacyTargetingConditions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "attr": {
+                        "type": "string",
+                        "enum": [
+                          "UID",
+                          "IP",
+                          "LOCATION",
+                          "PLATFORM",
+                          "DOMAIN",
+                          "USER_AGENT",
+                          "APP_VERSION",
+                          "BUILD_TYPE",
+                          "FS_VERSION",
+                          "FS_BUILD_ID",
+                          "OS_VERSION",
+                          "MODEL",
+                          "MANUFACTURER",
+                          "APP_NAME",
+                          "APP_PACKAGE"
+                        ],
+                        "default": "TGT_RULE_ATTR_INVALID",
+                        "description": "- UID: common\n\nidentified user\n - PLATFORM: a value of schema.PageTypeEnum\n - DOMAIN: web related\n - APP_VERSION: native mobile related\n\napplication version string (can be normalized to a numeric value for comparison operators, if in dotted quad form)\n - BUILD_TYPE: application build variant\n - FS_VERSION: application fs instrumentation version\n - FS_BUILD_ID: application fs build id\n - OS_VERSION: operating system version\n - MODEL: device model\n - MANUFACTURER: device manufacturer\n - APP_NAME: application name, native mobile only\n - APP_PACKAGE: application package name, native mobile only",
+                        "title": "Targeting rules for privacy settings and session recording\nAttributes of the session compared against in a TargetingRuleCondition"
+                      },
+                      "op": {
+                        "type": "string",
+                        "enum": [
+                          "EQ",
+                          "NEQ",
+                          "LT",
+                          "LTE",
+                          "GT",
+                          "GTE",
+                          "RANGE",
+                          "CONTAINS"
+                        ],
+                        "default": "TGT_RULE_OP_INVALID",
+                        "title": "Comparison operators that we use to compare a targeting attribute\u2019s incoming value against a declared value in a TargetingRuleCondition"
+                      },
+                      "values": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "strVal": {
+                              "type": "string"
+                            },
+                            "intVal": {
+                              "type": "string",
+                              "format": "int64"
+                            },
+                            "versionVal": {
+                              "type": "object",
+                              "properties": {
+                                "major": {
+                                  "type": "string",
+                                  "format": "uint64"
+                                },
+                                "minor": {
+                                  "type": "string",
+                                  "format": "uint64"
+                                },
+                                "build": {
+                                  "type": "string",
+                                  "format": "uint64"
+                                },
+                                "revision": {
+                                  "type": "string",
+                                  "format": "uint64"
+                                }
+                              },
+                              "title": "Represents a dotted quad version number"
+                            }
+                          }
+                        }
+                      },
+                      "joinPrevious": {
+                        "title": "conjunction type to use for the previous condition if multiple",
+                        "type": "string",
+                        "enum": [
+                          "AND",
+                          "OR"
+                        ],
+                        "default": "TGT_RULE_CNJ_INVALID"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "editable": {
+              "type": "string",
+              "enum": [
+                "EDITABLE_ANY",
+                "EDITABLE_DESCRIPTION_ONLY",
+                "EDITABLE_DESCRIPTION_SCOPE_AND_EXCEPTIONS"
+              ],
+              "default": "EDITABLE_ANY"
+            },
+            "exceptionSelectors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "groupId": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Membership in a privacy rule group. 0 means no group."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/segments/v1/{id}",
+  "operation_id": "GetSegment",
+  "title": "Get Segment",
+  "description": "Returns segment information for the provided segment ID.\nIn addition to the [list API](../list-segments), segment IDs can be extracted from within the Fullstory UI. When on the page for a segment, the URL will contain the segment's ID. For example, the URL `https://app.fullstory.com/ui/ABCD/segments/12345abcdefg/people/0` corresponds to a segment with an ID of `12345abcdefg`.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/segments/get-segment/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "The ID of the segment to be retrieved",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "id": "12345abcdefg",
+      "name": "Power Users (Web)",
+      "creator": "alice@example.com",
+      "created": "2020-10-01T12:34:56.123Z",
+      "url": "https://app.fullstory.com/ui/yourOrgId/segments/12345abcdefg"
+    },
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier for the segment."
+      },
+      "name": {
+        "type": "string",
+        "description": "The display name of the segment."
+      },
+      "creator": {
+        "type": "string",
+        "description": "The email associated with the Fullstory user who created the segment."
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "description": "UTC RFC 3339 timestamp for when the segment was created. Will not be present for built-in segments."
+      },
+      "url": {
+        "type": "string",
+        "description": "URL for the corresponding segment in the Fullstory app."
+      }
+    }
+  }
+}

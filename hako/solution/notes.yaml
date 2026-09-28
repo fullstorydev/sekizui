@@ -1,0 +1,82 @@
+# The kata's GOVERNANCE HALF — blueprint steps 5 to 9.
+#
+# This is the half CONTRACTS §5 never carried and the half a connector ships
+# without when nobody makes them write it. The driver next door is complete and
+# conformant and would run perfectly with none of this; what it would not be is
+# governed.
+#
+# Loaded and validated by a test, so nothing here is plausible-looking YAML.
+
+# --- STEP 5: the target, and the operational limits ON it --------------------
+targets:
+  - ref: notes:acme
+    kind: notes
+    tenant: acme
+    residency: eu
+    base_url: https://api.notes.example
+    # NOT env:// — an environment variable declares no version, and the default
+    # credential policy refuses an unversioned credential off bare metal. This
+    # is also what Helm and SOPS terminate as.
+    credential: file:///etc/sekizui/notes-acme
+    limits:
+      # A CEILING THE DEPLOYMENT FLAG MAY ONLY NARROW, never widen. Here rather
+      # than on a flag so changing it does not need a redeploy.
+      rate_per_hr: 500
+      max_lifetime_s: 3600
+      breaker_trip: 5
+
+# --- STEP 6: a NARROW grant ---------------------------------------------------
+grants:
+  - principal: agent:support
+    allow:
+      # Name the TARGET. A capability with no target is a capability against
+      # every target of this kind, which is rarely what anybody meant and is
+      # invisible in review.
+      - {action: notes.create_note, target: notes:acme}
+      - {action: notes.read_note, target: notes:acme}
+
+# --- STEP 7: an IMPOSED lens, naming what this vendor's payload carries -------
+shin:
+  - name: notes-author-withheld
+    enabled: true
+    # Empty would also mean imposed — the one place in the configuration where
+    # the safe default is the restrictive one, because a lens that silently
+    # becomes optional discloses.
+    mode: imposed
+    # **THE PAYLOAD TYPE, NOT THE SCHEMA URI (D41, D88).** This is the key
+    # `payload_schemas` below is keyed on and the key the read action's
+    # `OutputType` declares. The URI belongs in `OutputSchema`, which names where
+    # the document lives; putting it here instead is the conflation the two
+    # fields were split to prevent, and it used to be in this file.
+    type: notes.note.v1
+    withholds: [author.email]
+    # `because` is not decoration: a lens whose reason is unrecorded is one
+    # nobody dares remove and nobody can justify.
+    because: "a note's author is a named individual, and the agent reading the note does not need to reach them"
+
+# --- STEP 8: a preventive guard naming the IRREVERSIBLE actions ---------------
+anzen:
+  - name: notes-no-deletion
+    enabled: true
+    mode: enforce
+    # Checked BEFORE policy, so this is refused even where a grant permits it.
+    # `applies_to` omitted means EVERY principal, which is right for a blocklist:
+    # a destructive action nobody should perform is not a per-principal question.
+    forbids: ["notes.delete_*"]
+
+# --- STEP 9 is not a config block ---------------------------------------------
+# This connector raises no signal from the closed vocabulary: it detects no
+# condition Sekizui does not already see. Saying so is the step — a declared
+# signal nothing raises is a rule an operator believes is in force.
+
+# --- STEP 4's other half: THE SCHEMA SHIPS WITH THE CONNECTOR (D279) ---------
+#
+# `notes.note.v1` is declared in `hako/solution/schemas.yaml`, embedded in the
+# driver and returned from Schemas() — beside the code that emits it, so the two
+# cannot be deployed apart. A declared OutputType with no connector-shipped
+# schema is refused at boot naming the connector; a schema written in this file
+# for the connector's type is refused too — one type, one owner.
+#
+# CLOSED BY DEFAULT: a field the far side adds is stripped at ingest until the
+# connector names it. What stays here is the deployment's half — the lens above,
+# whose field paths D42 still checks against the connector's schema.

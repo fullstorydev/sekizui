@@ -1,0 +1,115 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/segments/v1",
+  "operation_id": "ListSegments",
+  "title": "List Segments",
+  "description": "Lists segments",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/segments/list-segments/",
+  "parameters": [
+    {
+      "name": "limit",
+      "description": "Optionally limit the number of segments returned. Defaults to 20. The max limit for a single page is 100.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    {
+      "name": "paginationToken",
+      "description": "Optional pagination token for retrieving more results.\nList params should not change between consecutive paginated requests (limit is an exception).",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "creator",
+      "description": "If set, filters the returned segments by the provided creator. This should\nbe an email associated with a Fullstory account.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "segments": [
+        {
+          "id": "abcdefg12345",
+          "name": "Visits to jobs page",
+          "creator": "bob@example.com",
+          "created": "2020-10-22T14:30:10.631Z",
+          "url": "https://app.fullstory.com/ui/yourOrgId/segments/abcdefg12345"
+        },
+        {
+          "id": "12345abcdefg",
+          "name": "Beta Users",
+          "creator": "alice@example.com",
+          "created": "2020-10-22T14:06:25.897Z",
+          "url": "https://app.fullstory.com/ui/yourOrgId/segments/12345abcdefg"
+        },
+        {
+          "id": "hijklmn12345",
+          "name": "Power Users (Web)",
+          "creator": "joe@example.com",
+          "created": "2020-10-22T13:35:04.700Z",
+          "url": "https://app.fullstory.com/ui/yourOrgId/segments/hijklmn12345"
+        }
+      ],
+      "nextPaginationToken": "abdefg123"
+    },
+    "properties": {
+      "segments": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "example": {
+            "id": "12345abcdefg",
+            "name": "Power Users (Web)",
+            "creator": "alice@example.com",
+            "created": "2020-10-01T12:34:56.123Z",
+            "url": "https://app.fullstory.com/ui/yourOrgId/segments/12345abcdefg"
+          },
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the segment."
+            },
+            "name": {
+              "type": "string",
+              "description": "The display name of the segment."
+            },
+            "creator": {
+              "type": "string",
+              "description": "The email associated with the Fullstory user who created the segment."
+            },
+            "created": {
+              "type": "string",
+              "format": "date-time",
+              "description": "UTC RFC 3339 timestamp for when the segment was created. Will not be present for built-in segments."
+            },
+            "url": {
+              "type": "string",
+              "description": "URL for the corresponding segment in the Fullstory app."
+            }
+          }
+        },
+        "title": "An array of segments as described in the [Get Segment API](../get-segment)"
+      },
+      "nextPaginationToken": {
+        "type": "string",
+        "description": "If present, then there are more results which can be retrieved by making another request with this token as the\n`pagination_token`."
+      }
+    }
+  }
+}

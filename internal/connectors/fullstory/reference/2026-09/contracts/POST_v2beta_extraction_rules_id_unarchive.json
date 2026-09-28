@@ -1,0 +1,689 @@
+{
+  "tier": "beta",
+  "method": "POST",
+  "path": "/v2beta/extraction/rules/{id}/unarchive",
+  "operation_id": "UnarchiveExtractionRule",
+  "title": "Unarchive Extraction Rule",
+  "description": "Restores a previously archived extraction rule. The rule resumes capturing data. Fails if restoring the rule would exceed the active rule limit.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/beta/extractionrules/unarchive-extraction-rule/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "The ID of the rule to unarchive.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "rule": {
+        "id": "rule_abc123",
+        "name": "Capture Product Price",
+        "description": "Extracts the product price from the cart summary element",
+        "scope": "PAGE",
+        "source": {
+          "element": {
+            "selectors": {
+              "selectors": [
+                {
+                  "platform": [
+                    "WEB"
+                  ],
+                  "selector": "#cart-summary .price"
+                }
+              ]
+            }
+          }
+        },
+        "mappings": [
+          {
+            "element_value": {
+              "attribute": {
+                "attribute": "data-price"
+              }
+            },
+            "target": {
+              "property": {
+                "name": "product_price",
+                "data_type": "FLOAT"
+              }
+            },
+            "operation": {
+              "regex": {
+                "expression": "^(\\d+\\.\\d{2})"
+              }
+            }
+          }
+        ],
+        "archived": false
+      },
+      "active_limit": 100,
+      "active_count": 12
+    },
+    "properties": {
+      "rule": {
+        "type": "object",
+        "example": {
+          "id": "rule_abc123",
+          "name": "Capture Product Price",
+          "description": "Extracts the product price from the cart summary element",
+          "scope": "PAGE",
+          "source": {
+            "element": {
+              "selectors": {
+                "selectors": [
+                  {
+                    "platform": [
+                      "WEB"
+                    ],
+                    "selector": "#cart-summary .price"
+                  }
+                ]
+              }
+            }
+          },
+          "mappings": [
+            {
+              "element_value": {
+                "attribute": {
+                  "attribute": "data-price"
+                }
+              },
+              "target": {
+                "property": {
+                  "name": "product_price",
+                  "data_type": "FLOAT"
+                }
+              },
+              "operation": {
+                "regex": {
+                  "expression": "^(\\d+\\.\\d{2})"
+                }
+              }
+            }
+          ],
+          "archived": false
+        },
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "rule_abc123",
+            "description": "Unique identifier for the extraction rule.",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "example": "Capture Product Price",
+            "description": "Display name for the extraction rule.",
+            "maxLength": 256
+          },
+          "description": {
+            "type": "string",
+            "example": "Extracts the product price from the cart summary element",
+            "description": "Description of the rule's purpose and behavior.",
+            "maxLength": 1024
+          },
+          "source": {
+            "description": "Where to look for data (element, URL, or network). Exactly one source case must be set.",
+            "type": "object",
+            "properties": {
+              "element": {
+                "description": "Extract from page elements matched by selector.",
+                "type": "object",
+                "properties": {
+                  "selectors": {
+                    "description": "One or more selectors; the rule matches if any selector matches (OR logic).",
+                    "type": "object",
+                    "properties": {
+                      "selectors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "platform": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "UNSPECIFIED",
+                                  "WEB",
+                                  "IOS",
+                                  "ANDROID"
+                                ],
+                                "default": "UNSPECIFIED",
+                                "description": "Platform.Enum identifies the client platform for a selector."
+                              },
+                              "description": "Which platforms this selector applies to. Multiple platforms means the same\nselector string works on all of them."
+                            },
+                            "selector": {
+                              "type": "string",
+                              "example": "#cart-summary .price",
+                              "description": "Platform-specific selector string."
+                            }
+                          },
+                          "description": "Selector identifies an element on a specific platform.",
+                          "required": [
+                            "platform",
+                            "selector"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "match_any_selector": {
+                    "description": "Match any element as the anchor (attribute-only flows).",
+                    "type": "object"
+                  },
+                  "named_element_id": {
+                    "type": "string",
+                    "description": "Named element id is not yet supported for new rule creation. Returned when the stored rule already uses this anchor."
+                  },
+                  "any_child": {
+                    "type": "object",
+                    "description": "AnyChildMatch selects any descendant of the anchor element as the extraction basis for the value read."
+                  },
+                  "child_named_element_id": {
+                    "type": "string",
+                    "description": "Named child element id is not yet supported for new rule creation. Returned when the stored rule already uses a named child basis."
+                  },
+                  "child_selectors": {
+                    "type": "object",
+                    "properties": {
+                      "selectors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "platform": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "UNSPECIFIED",
+                                  "WEB",
+                                  "IOS",
+                                  "ANDROID"
+                                ],
+                                "default": "UNSPECIFIED",
+                                "description": "Platform.Enum identifies the client platform for a selector."
+                              },
+                              "description": "Which platforms this selector applies to. Multiple platforms means the same\nselector string works on all of them."
+                            },
+                            "selector": {
+                              "type": "string",
+                              "example": "#cart-summary .price",
+                              "description": "Platform-specific selector string."
+                            }
+                          },
+                          "description": "Selector identifies an element on a specific platform.",
+                          "required": [
+                            "platform",
+                            "selector"
+                          ]
+                        }
+                      }
+                    },
+                    "description": "ElementChildSelectors specifies OR'd selectors under the anchor that locate the extraction basis node."
+                  }
+                }
+              },
+              "url": {
+                "description": "Extract from the page URL.",
+                "type": "object",
+                "properties": {
+                  "any": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "network": {
+                "description": "Extract from captured network (HTTP request/response) traffic.",
+                "type": "object",
+                "properties": {
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "request_url": {
+                          "description": "Match against the captured HTTP request URL.",
+                          "type": "object",
+                          "properties": {
+                            "regex": {
+                              "description": "RE2 regular expression evaluated against the full request URL. Match-only \u2014 no `format` (that belongs on mapping `operation`).",
+                              "type": "object",
+                              "properties": {
+                                "expression": {
+                                  "type": "string",
+                                  "description": "RE2 regular expression matched against the full request URL."
+                                }
+                              },
+                              "required": [
+                                "expression"
+                              ]
+                            }
+                          }
+                        },
+                        "status": {
+                          "description": "The HTTP response status must match (an exact code or an inclusive range).",
+                          "type": "object",
+                          "properties": {
+                            "equals": {
+                              "type": "integer",
+                              "format": "int64",
+                              "description": "Exact HTTP status code to match (100\u2013599)."
+                            },
+                            "range": {
+                              "description": "Status code must fall within this inclusive range.",
+                              "type": "object",
+                              "properties": {
+                                "min": {
+                                  "type": "integer",
+                                  "format": "int64",
+                                  "description": "Lowest matching HTTP status code, inclusive (100\u2013599)."
+                                },
+                                "max": {
+                                  "type": "integer",
+                                  "format": "int64",
+                                  "description": "Highest matching HTTP status code, inclusive (100\u2013599). Must be \u003e= min."
+                                }
+                              },
+                              "required": [
+                                "min",
+                                "max"
+                              ]
+                            }
+                          }
+                        },
+                        "method": {
+                          "description": "The HTTP request method must match.",
+                          "type": "object",
+                          "properties": {
+                            "equals": {
+                              "description": "Exact HTTP method to match.",
+                              "type": "string",
+                              "enum": [
+                                "UNSPECIFIED",
+                                "GET",
+                                "HEAD",
+                                "POST",
+                                "PUT",
+                                "PATCH",
+                                "DELETE",
+                                "CONNECT",
+                                "OPTIONS",
+                                "TRACE"
+                              ],
+                              "default": "UNSPECIFIED"
+                            },
+                            "any_of": {
+                              "description": "Request method must be one of these values (logical OR).",
+                              "type": "object",
+                              "properties": {
+                                "methods": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "UNSPECIFIED",
+                                      "GET",
+                                      "HEAD",
+                                      "POST",
+                                      "PUT",
+                                      "PATCH",
+                                      "DELETE",
+                                      "CONNECT",
+                                      "OPTIONS",
+                                      "TRACE"
+                                    ],
+                                    "default": "UNSPECIFIED",
+                                    "description": "HttpMethod.Enum identifies an HTTP request method."
+                                  },
+                                  "description": "HTTP methods to match (OR). At least one required; UNSPECIFIED is not allowed."
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "description": "NetworkFilter restricts which HTTP exchanges a network rule runs against. Exactly one predicate must be set."
+                    },
+                    "description": "Predicates that an HTTP exchange must satisfy for the rule to run. All filters must match (logical AND).\nLeave empty to match every captured request."
+                  }
+                }
+              }
+            }
+          },
+          "mappings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "element_value": {
+                  "description": "Read from a matched page element (attribute, inner text).",
+                  "type": "object",
+                  "properties": {
+                    "attribute": {
+                      "description": "Read the value of an HTML attribute.",
+                      "type": "object",
+                      "properties": {
+                        "attribute": {
+                          "type": "string",
+                          "example": "data-price",
+                          "description": "Name of the HTML attribute to extract."
+                        },
+                        "include_ancestors": {
+                          "type": "boolean",
+                          "description": "When true, resolve the attribute by walking ancestors from the extraction basis (nearest ancestor wins)."
+                        }
+                      },
+                      "required": [
+                        "attribute"
+                      ]
+                    },
+                    "inner_text": {
+                      "type": "boolean",
+                      "description": "Read the inner text content of the element. Set to true."
+                    }
+                  }
+                },
+                "url_value": {
+                  "description": "Read from a URL component (full, path, host, query param, fragment).",
+                  "type": "object",
+                  "properties": {
+                    "full": {
+                      "type": "boolean",
+                      "description": "Use the full URL."
+                    },
+                    "path": {
+                      "type": "boolean",
+                      "description": "Use the path component only (e.g. /products/shoes)."
+                    },
+                    "host": {
+                      "type": "boolean",
+                      "description": "Use the host component only (e.g. www.example.com)."
+                    },
+                    "query": {
+                      "type": "string",
+                      "description": "Read a specific query parameter by name."
+                    },
+                    "fragment": {
+                      "type": "boolean",
+                      "description": "Use the fragment only, without the leading # (e.g. section-2)."
+                    }
+                  }
+                },
+                "static_value": {
+                  "description": "Use a fixed static string as the value.",
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "A fixed string value to use regardless of page content."
+                    }
+                  },
+                  "required": [
+                    "value"
+                  ]
+                },
+                "network_value": {
+                  "description": "Read from a captured network exchange (method, url, status, headers, body, etc.). Only valid with a network source.",
+                  "type": "object",
+                  "properties": {
+                    "method": {
+                      "type": "boolean",
+                      "description": "Read the HTTP request method (e.g. \"GET\"). Set to true."
+                    },
+                    "url": {
+                      "description": "Read a component of the request URL (full, path, host, query param, fragment).",
+                      "type": "object",
+                      "properties": {
+                        "full": {
+                          "type": "boolean",
+                          "description": "Use the full URL."
+                        },
+                        "path": {
+                          "type": "boolean",
+                          "description": "Use the path component only (e.g. /products/shoes)."
+                        },
+                        "host": {
+                          "type": "boolean",
+                          "description": "Use the host component only (e.g. www.example.com)."
+                        },
+                        "query": {
+                          "type": "string",
+                          "description": "Read a specific query parameter by name."
+                        },
+                        "fragment": {
+                          "type": "boolean",
+                          "description": "Use the fragment only, without the leading # (e.g. section-2)."
+                        }
+                      }
+                    },
+                    "duration_ms": {
+                      "type": "boolean",
+                      "description": "Read the request duration in milliseconds. Set to true."
+                    },
+                    "status": {
+                      "type": "boolean",
+                      "description": "Read the HTTP response status code. Set to true."
+                    },
+                    "request_body_size": {
+                      "type": "boolean",
+                      "description": "Read the request body size in bytes. Set to true."
+                    },
+                    "response_body_size": {
+                      "type": "boolean",
+                      "description": "Read the response body size in bytes. Set to true."
+                    },
+                    "request_header": {
+                      "description": "Read a single named header from the request.",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Header name to read, matched case-insensitively."
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
+                    },
+                    "response_header": {
+                      "description": "Read a single named header from the response.",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Header name to read, matched case-insensitively."
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
+                    },
+                    "request_body": {
+                      "description": "Read a single value from the JSON request body by path.",
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Ordered JSON path segments (object keys or decimal array indices) locating a single value in the body."
+                        }
+                      },
+                      "required": [
+                        "path"
+                      ]
+                    },
+                    "response_body": {
+                      "description": "Read a single value from the JSON response body by path.",
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Ordered JSON path segments (object keys or decimal array indices) locating a single value in the body."
+                        }
+                      },
+                      "required": [
+                        "path"
+                      ]
+                    }
+                  }
+                },
+                "target": {
+                  "description": "Where to write the extracted value.",
+                  "type": "object",
+                  "properties": {
+                    "api_name": {
+                      "type": "boolean",
+                      "description": "Write to the built-in Page Name property (scope=PAGE) or the custom event name (scope=EVENT).\nSet to true. For scope=EVENT exactly one mapping must use api_name."
+                    },
+                    "uid": {
+                      "type": "boolean",
+                      "description": "Write to the built-in User ID property. Set to true. Only valid with scope=USER."
+                    },
+                    "email": {
+                      "type": "boolean",
+                      "description": "Write to the built-in Email property. Set to true. Only valid with scope=USER."
+                    },
+                    "display_name": {
+                      "type": "boolean",
+                      "description": "Write to the built-in Display Name property. Set to true. Only valid with scope=USER."
+                    },
+                    "property": {
+                      "description": "Write to a custom property for the rule's scope.",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "product_price",
+                          "description": "Property name as it appears in Fullstory."
+                        },
+                        "data_type": {
+                          "description": "The data type of the property value.",
+                          "type": "string",
+                          "enum": [
+                            "UNSPECIFIED",
+                            "BOOLEAN",
+                            "DATE",
+                            "INTEGER",
+                            "FLOAT",
+                            "STRING",
+                            "BOOLEANS",
+                            "DATES",
+                            "INTEGERS",
+                            "FLOATS",
+                            "STRINGS"
+                          ],
+                          "default": "UNSPECIFIED"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "data_type"
+                      ]
+                    }
+                  }
+                },
+                "operation": {
+                  "description": "Optional transform to apply to the raw value before writing.",
+                  "type": "object",
+                  "properties": {
+                    "regex": {
+                      "description": "Apply a regular expression with optional capture group formatting.",
+                      "type": "object",
+                      "properties": {
+                        "expression": {
+                          "type": "string",
+                          "example": "^(\\d+\\.\\d{2})",
+                          "description": "Regular expression to apply to the raw value."
+                        },
+                        "format": {
+                          "type": "string",
+                          "description": "Format string using capture group references ($1, $2, etc.)."
+                        }
+                      },
+                      "required": [
+                        "expression"
+                      ]
+                    }
+                  }
+                }
+              },
+              "description": "Mapping defines a single value extraction: where to read the raw value from,\nan optional transform, and where to write the result.",
+              "required": [
+                "target"
+              ]
+            },
+            "description": "What to extract and where to put it. Each mapping defines one value extraction."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the rule was created.",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the rule was last modified.",
+            "readOnly": true
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether the rule is archived. Archived rules stop capturing data but are preserved for historical context.",
+            "readOnly": true
+          },
+          "etag": {
+            "type": "string",
+            "description": "Deprecated. Always empty. Concurrent writes are last-write-wins.",
+            "readOnly": true
+          },
+          "scope": {
+            "example": "PAGE",
+            "description": "The entity that all mappings in this rule write to. On PUT replace, must match the stored rule's scope.",
+            "type": "string",
+            "enum": [
+              "UNSPECIFIED",
+              "PAGE",
+              "USER",
+              "ELEMENT",
+              "REQUEST",
+              "EVENT"
+            ],
+            "default": "UNSPECIFIED"
+          }
+        },
+        "description": "ExtractionRule defines a rule for capturing structured data from page elements or URLs\ninto named properties. Each rule has a source (where to look), a scope (where to write),\nand one or more mappings (what to extract).\n\nOpenAPI note: field-level examples on oneof arms are merged into a single invalid sample by\nprotoc-gen-openapiv2. Keep this schema example as one coherent, valid element-source rule.\nNetwork / URL shapes belong in intro worked examples, not in this composite sample.",
+        "required": [
+          "name",
+          "scope",
+          "source",
+          "mappings"
+        ]
+      },
+      "active_limit": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "active_count": {
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  }
+}

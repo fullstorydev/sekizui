@@ -1,0 +1,46 @@
+# The kata's GOVERNANCE HALF, with the governance taken out.
+#
+# The target and the grant are here because nothing runs without them. What is
+# missing is everything a connector can ship without and still work — which is
+# precisely the half that gets skipped, and the half CONTRACTS §5 never carried.
+
+# --- STEP 5: the target. Present, and one thing is wrong ---------------------
+targets:
+  - ref: notes:acme
+    kind: notes
+    tenant: acme
+    residency: eu
+    base_url: https://api.notes.example
+    credential: env://NOTES_API_KEY
+    # HAKO STEP 5: two problems. `env://` is refused off bare metal — an
+    # environment variable declares no version, and the default credential
+    # policy requires one. And there are no `limits:` at all, so this target
+    # inherits the deployment ceiling and an operator cannot narrow it without a
+    # redeploy. What should the credential reference be, and which limits belong
+    # on a target rather than on a flag?
+
+# --- STEP 6: the grant. Present, and wider than it needs to be ---------------
+grants:
+  - principal: agent:support
+    allow:
+      # HAKO STEP 6: this capability names no target, so it authorises the
+      # action against EVERY target of this kind — including ones added later by
+      # somebody who never read this grant. Narrow it.
+      - {action: notes.create_note}
+      - {action: notes.read_note}
+
+# HAKO STEP 7: there is no `shin:` block. Read the driver's read action and ask
+# what comes back in a note: a body written by a human, and an author with a
+# name and an email address. Which of those does an agent need, and which is a
+# named individual's contact detail? Write the lens, and write `because` —
+# a lens whose reason is unrecorded is one nobody dares remove and nobody can
+# justify.
+
+# HAKO STEP 8: there is no `anzen:` block. A guard is a CEILING checked before
+# policy, so it holds even where a grant permits. Which of this connector's
+# actions are IRREVERSIBLE — not merely dangerous, but impossible to undo with a
+# subsequent call? Forbid those.
+
+# HAKO STEP 9: nothing here says which of the closed signal vocabulary this
+# connector can raise. Saying "none, and here is why" IS the step: a declared
+# signal nothing raises is a rule an operator believes is in force.

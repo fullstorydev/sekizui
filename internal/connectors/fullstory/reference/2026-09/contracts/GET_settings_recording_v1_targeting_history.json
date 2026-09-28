@@ -1,0 +1,240 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/settings/recording/v1/targeting/history",
+  "operation_id": "GetTargetingSettingsHistory",
+  "title": "Get Target Rules History",
+  "description": "Returns a list of versions, each denoting a set of the Targeting Settings. Every time these settings are modified, a new version is created. This endpoint allows for paging through the history of these settings for audit purposes.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/settings/get-targeting-settings-history/",
+  "parameters": [
+    {
+      "name": "paginationToken",
+      "description": "The token to start the page at. The default is the most recent version of settings.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "The max number of returned versions. The default is 20 and the max is 100.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {
+      "versions": [
+        {
+          "sessionTargetingRules": [],
+          "metadata": {
+            "lastUpdated": "2020-10-01T23:53:06.496Z",
+            "lastUpdatedBy": "bob@example.com",
+            "created": "2020-10-01T23:53:06.496Z",
+            "createdBy": "bob@example.com"
+          }
+        }
+      ],
+      "next_pagination_token": ""
+    },
+    "properties": {
+      "versions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "example": {
+            "sessionTargetingRules": [],
+            "metadata": {
+              "lastUpdated": "2020-10-01T23:53:06.496Z",
+              "lastUpdatedBy": "bob@example.com",
+              "created": "2020-10-01T23:53:06.496Z",
+              "createdBy": "bob@example.com"
+            }
+          },
+          "properties": {
+            "sessionTargetingRules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "a named identifier for this rule, which can be referenced to build a composite rule by a UI"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "title": "additional information provided by the author"
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": [
+                      "ALL_SESSIONS",
+                      "NO_SESSIONS",
+                      "PREVIEW_SESSIONS_ONLY",
+                      "LIVE_SESSIONS_ONLY"
+                    ],
+                    "default": "ALL_SESSIONS",
+                    "description": "RuleScope is used to limit the scope exclusion rules\nso a customer can dogfood a rule in \"audited\" sessions they record\nthemselves before turning the rule on for all of their users.\n\n - ALL_SESSIONS: Apply always (default).\n - NO_SESSIONS: Never apply.\n - PREVIEW_SESSIONS_ONLY: Apply only for \"previewed\" sessions e.g. to test the addition of a BLOCK_UNMASK rule.\n - LIVE_SESSIONS_ONLY: Apply only for non-preview sessions e.g. to test the removal of an BLOCK_EXCLUDE rule."
+                  },
+                  "conditions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "attr": {
+                          "type": "string",
+                          "enum": [
+                            "UID",
+                            "IP",
+                            "LOCATION",
+                            "PLATFORM",
+                            "DOMAIN",
+                            "USER_AGENT",
+                            "APP_VERSION",
+                            "BUILD_TYPE",
+                            "FS_VERSION",
+                            "FS_BUILD_ID",
+                            "OS_VERSION",
+                            "MODEL",
+                            "MANUFACTURER",
+                            "APP_NAME",
+                            "APP_PACKAGE"
+                          ],
+                          "default": "TGT_RULE_ATTR_INVALID",
+                          "description": "- UID: common\n\nidentified user\n - PLATFORM: a value of schema.PageTypeEnum\n - DOMAIN: web related\n - APP_VERSION: native mobile related\n\napplication version string (can be normalized to a numeric value for comparison operators, if in dotted quad form)\n - BUILD_TYPE: application build variant\n - FS_VERSION: application fs instrumentation version\n - FS_BUILD_ID: application fs build id\n - OS_VERSION: operating system version\n - MODEL: device model\n - MANUFACTURER: device manufacturer\n - APP_NAME: application name, native mobile only\n - APP_PACKAGE: application package name, native mobile only",
+                          "title": "Targeting rules for privacy settings and session recording\nAttributes of the session compared against in a TargetingRuleCondition"
+                        },
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "EQ",
+                            "NEQ",
+                            "LT",
+                            "LTE",
+                            "GT",
+                            "GTE",
+                            "RANGE",
+                            "CONTAINS"
+                          ],
+                          "default": "TGT_RULE_OP_INVALID",
+                          "title": "Comparison operators that we use to compare a targeting attribute\u2019s incoming value against a declared value in a TargetingRuleCondition"
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "strVal": {
+                                "type": "string"
+                              },
+                              "intVal": {
+                                "type": "string",
+                                "format": "int64"
+                              },
+                              "versionVal": {
+                                "type": "object",
+                                "properties": {
+                                  "major": {
+                                    "type": "string",
+                                    "format": "uint64"
+                                  },
+                                  "minor": {
+                                    "type": "string",
+                                    "format": "uint64"
+                                  },
+                                  "build": {
+                                    "type": "string",
+                                    "format": "uint64"
+                                  },
+                                  "revision": {
+                                    "type": "string",
+                                    "format": "uint64"
+                                  }
+                                },
+                                "title": "Represents a dotted quad version number"
+                              }
+                            }
+                          }
+                        },
+                        "joinPrevious": {
+                          "title": "conjunction type to use for the previous condition if multiple",
+                          "type": "string",
+                          "enum": [
+                            "AND",
+                            "OR"
+                          ],
+                          "default": "TGT_RULE_CNJ_INVALID"
+                        }
+                      }
+                    },
+                    "title": "the set of conditions for this rule"
+                  },
+                  "children": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "joinPrevious": {
+                          "type": "string",
+                          "enum": [
+                            "AND",
+                            "OR"
+                          ],
+                          "default": "TGT_RULE_CNJ_INVALID",
+                          "title": "Joins multiple TargetingRuleConditions and/or TargetingRules"
+                        }
+                      },
+                      "title": "a reference to a rule by id and a join operator for expressing composite rules"
+                    },
+                    "title": "for expressing composite rules"
+                  }
+                },
+                "description": "TargetingRule is a collection of TargetingRuleConditions and (optionally) composed of other defined TargetingRules.\nTargetingRules be associated with a Selector for further specificity in privacy rules, or used to conditionally block sessions."
+              }
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "lastUpdated": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this entity was last updated."
+                },
+                "lastUpdatedBy": {
+                  "type": "string",
+                  "description": "Who made the last update to this entity."
+                },
+                "created": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this entity was first created."
+                },
+                "createdBy": {
+                  "type": "string",
+                  "description": "Who first created this entity."
+                }
+              },
+              "title": "This is a public-facing semi-duplicate of protoauditstore.AuditMetadata"
+            }
+          }
+        }
+      },
+      "nextPaginationToken": {
+        "type": "string"
+      }
+    }
+  }
+}

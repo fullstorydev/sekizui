@@ -1,0 +1,258 @@
+{
+  "tier": "v2",
+  "method": "POST",
+  "path": "/v2/visit_profile",
+  "operation_id": "CreateProfile",
+  "title": "Create Profile",
+  "description": "Create the session summary prompt profile that specifies both prompting instructions and session context configuration.\nSee [the Generate Summary Overview section of the Introduction](/server/sessions/introduction/#generate-summary-overview) for detailed guidance on creating prompt profiles to be used for generating session summaries.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/create-profile/",
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "slice": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "default": "FIRST",
+            "title": "return earliest or latest events as defined",
+            "type": "string",
+            "enum": [
+              "UNSPECIFIED",
+              "FIRST",
+              "LAST",
+              "TIMESTAMP"
+            ]
+          },
+          "event_limit": {
+            "type": "integer",
+            "format": "int32",
+            "title": "only keep the specified number of events if this is greater than zero"
+          },
+          "duration_limit_ms": {
+            "type": "string",
+            "format": "int64",
+            "title": "only keep events within the specified time duration from the beginning or end time"
+          },
+          "start_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If specified, the event limit and duration limit will be applied to the time beginning at this timestamp.",
+            "title": "apply event_limit and duration_limit_ms to the time beginning at start_timestamp"
+          },
+          "end_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If specified, only events before this timestamp will be included in the context."
+          }
+        }
+      },
+      "context": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Controls the session context elements to include, takes precedence over individual inclusion fields. Can be 'user', 'org', 'location', 'device'. If not specified and not excluded, all context elements are included."
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Controls the session context elements to exclude, takes precedence over individual exclusion fields. Can be 'user', 'org', 'location', 'device'. If not specified and not excluded, all context elements are included."
+          },
+          "exclude_org_context": {
+            "type": "boolean"
+          },
+          "exclude_user_context": {
+            "type": "boolean"
+          },
+          "exclude_location": {
+            "type": "boolean"
+          },
+          "exclude_device": {
+            "type": "boolean"
+          },
+          "exclude_descriptions": {
+            "type": "boolean",
+            "description": "Deprecated: use event.include_descriptions instead (takes precedence)."
+          }
+        }
+      },
+      "events": {
+        "type": "object",
+        "properties": {
+          "exclude_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to exclude from the context. Valid event types: `navigate`, `click`, `dead-click`, `error-click`, `rage-click`, `input-change`, `network-error`, `console-error`, `mouse-thrash`, `highlight`, `copy`, `paste`, `element-seen`. See the [AI Session Summary API documentation](/anywhere/activation/ai-session-summary-api/#includingexcluding-event-types) for detailed descriptions of each event type."
+          },
+          "include_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to include in the context. If specified, only these event types will be included. Valid event types: `navigate`, `click`, `dead-click`, `error-click`, `rage-click`, `input-change`, `network-error`, `console-error`, `mouse-thrash`, `highlight`, `copy`, `paste`, `element-seen`. See the [AI Session Summary API documentation](/anywhere/activation/ai-session-summary-api/#includingexcluding-event-types) for detailed descriptions of each event type."
+          },
+          "exclude_defined_events": {
+            "type": "boolean"
+          },
+          "exclude_api_events": {
+            "type": "boolean"
+          },
+          "exclude_event_timestamps": {
+            "type": "boolean"
+          },
+          "exclude_selectors": {
+            "type": "boolean"
+          },
+          "include_selector_tags": {
+            "type": "boolean"
+          },
+          "trim_to_last_n_selectors": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "include_tab_index": {
+            "type": "boolean"
+          },
+          "include_descriptions": {
+            "type": "boolean"
+          }
+        }
+      },
+      "cache": {
+        "type": "object",
+        "properties": {
+          "enable_event_cache": {
+            "type": "boolean"
+          }
+        }
+      },
+      "llm": {
+        "description": "Configuration used to select the LLM model and related prompt and inference options.",
+        "type": "object",
+        "properties": {
+          "pre_prompt": {
+            "type": "string",
+            "description": "Text to be included in the Generative AI prompt before including the contextual representation of the requested session."
+          },
+          "post_prompt": {
+            "type": "string",
+            "description": "Text to be included in the Generative AI prompt after including the contextual representation of the requested session."
+          },
+          "temperature": {
+            "type": "number",
+            "format": "float",
+            "description": "Controls the randomness of text generated by a large language model."
+          },
+          "response_schema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "OPENAPI_TYPE_UNSPECIFIED",
+                  "STRING",
+                  "NUMBER",
+                  "INTEGER",
+                  "BOOLEAN",
+                  "ARRAY",
+                  "OBJECT"
+                ],
+                "default": "OPENAPI_TYPE_UNSPECIFIED"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "items": {
+                "type": "object",
+                "properties": "circular([object Object])"
+              },
+              "properties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": "circular([object Object])"
+                }
+              },
+              "required": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "nullable": {
+                "type": "boolean"
+              },
+              "enum": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "format": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "type": "OBJECT",
+              "title": "SessionSummary",
+              "description": "Structured output for the LLM response",
+              "properties": {
+                "summary": {
+                  "type": "STRING",
+                  "description": "Concise session summary"
+                },
+                "sentiment": {
+                  "type": "STRING",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ],
+                  "format": "enum"
+                },
+                "issues": {
+                  "type": "ARRAY",
+                  "items": {
+                    "type": "STRING"
+                  }
+                }
+              },
+              "required": [
+                "summary"
+              ]
+            },
+            "description": "Defines the JSON schema for the model's output. The LLM response is highly reliable at conforming to this schema, ensuring a structured and predictable format.\n\nThis implementation adheres to the JSON Schema specification, except that 1) All `type` values must be capitalized (e.g., `OBJECT`, `STRING`, etc.) and 2) The `$schema` and `$id` properties are not supported and must be omitted from the schema definition.\n\nSee the Introduction for a [detailed example](/server/sessions/introduction/#example-response-schema)."
+          }
+        }
+      },
+      "name": {
+        "type": "string",
+        "description": "The display name of the profile."
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Client defined ID representing this profile to be used in profile management API calls and to specify when performing session analysis."
+      }
+    },
+    "example": {}
+  }
+}

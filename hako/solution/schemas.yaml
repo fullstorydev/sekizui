@@ -1,0 +1,22 @@
+# HAKO STEP 4 (D279): the connector ships the schema of every type it emits.
+# Closed by default — a field the far side adds is stripped until you name it
+# here — and the deployment never writes this; it lenses what you declare.
+- type: notes.note.v1
+  schema:
+    type: object
+    properties:
+      id: {type: string}
+      body: {type: string}
+      author:
+        type: object
+        properties:
+          name: {type: string}
+          email: {type: string}
+
+# What create_note returns into Sekizui (D283): the note's id, for the audit
+# join. Every action declares its result — a type, or NoResult.
+- type: notes.write_result.v1
+  schema:
+    type: object
+    properties:
+      id: {type: string}

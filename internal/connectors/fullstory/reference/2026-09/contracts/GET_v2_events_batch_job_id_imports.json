@@ -1,0 +1,274 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/events/batch/{job_id}/imports",
+  "operation_id": "GetBatchEventsImports",
+  "title": "Get Batch Imported Events",
+  "description": "Get the event details for successful events imported from a batch events import job.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/events/get-batch-events-imports/",
+  "parameters": [
+    {
+      "name": "job_id",
+      "description": "ID that can be used to check the status and retrieve results for the batch import",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "page_token",
+      "description": "The token that can be used in a request to fetch the next page of results",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "include_schema",
+      "description": "Whether to include the schema in the response.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "boolean"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "123456789"
+                },
+                "uid": {
+                  "type": "string",
+                  "example": "xyz123"
+                }
+              },
+              "description": "The user identifier"
+            },
+            "session": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "123456789:1298251231",
+                  "description": "The Fullstory generated identifier for the session to associate the event with."
+                },
+                "uid": {
+                  "type": "string",
+                  "example": "xyz123",
+                  "description": "The application-specific ID you've given to the session."
+                }
+              },
+              "description": "The session identifier. If the event is attached to a session."
+            },
+            "context": {
+              "type": "object",
+              "properties": {
+                "browser": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "example": "https://app.example.com"
+                    },
+                    "user_agent": {
+                      "type": "string",
+                      "example": "Example_User_Agent"
+                    },
+                    "initial_referrer": {
+                      "type": "string",
+                      "example": "https://referrer.example.com"
+                    }
+                  },
+                  "description": "The browser context in which the events are attached to."
+                },
+                "mobile": {
+                  "x-fullstory-doc-example-ignore": true,
+                  "type": "object",
+                  "properties": {
+                    "app_id": {
+                      "type": "string",
+                      "example": "com.company.example"
+                    },
+                    "app_version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "app_name": {
+                      "type": "string",
+                      "example": "example app"
+                    },
+                    "build_variant": {
+                      "type": "string"
+                    }
+                  },
+                  "description": "The mobile context in which the events are attached to."
+                },
+                "device": {
+                  "x-fullstory-doc-example-ignore": true,
+                  "type": "object",
+                  "properties": {
+                    "manufacturer": {
+                      "type": "string",
+                      "example": "Device Manufacturer"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "screen_width": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "screen_height": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "viewport_width": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "viewport_height": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "description": "The device context in which the events are attached to."
+                },
+                "location": {
+                  "x-fullstory-doc-example-ignore": true,
+                  "type": "object",
+                  "properties": {
+                    "country": {
+                      "type": "string",
+                      "example": "US",
+                      "description": "ISO 3166-1 alpha-2 standard country code."
+                    },
+                    "region": {
+                      "type": "string",
+                      "example": "GA",
+                      "description": "ISO-3166-2 standard region code."
+                    },
+                    "city": {
+                      "type": "string",
+                      "example": "Atlanta",
+                      "description": "Name of the city."
+                    },
+                    "latitude": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "longitude": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "ip_address": {
+                      "type": "string",
+                      "example": "127.0.0.1"
+                    }
+                  },
+                  "description": "The location context in which the events are attached to."
+                }
+              },
+              "description": "The context in which the events are attached to."
+            },
+            "name": {
+              "type": "string",
+              "example": "Support Ticket",
+              "description": "The event's name."
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "ISO 8601 string",
+              "example": "2022-03-15T14:23:23Z",
+              "description": "Optional. The event's timestamp represented in ISO 8601 format. If not provided, the current Fullstory server time will be used."
+            },
+            "properties": {
+              "type": "object",
+              "example": {
+                "id": 424242,
+                "priority": "Normal",
+                "source": "Email",
+                "title": "Account locked out"
+              },
+              "description": "Optional. The custom event's payload."
+            },
+            "schema": {
+              "description": "Optional. Schema declaration, to define the structure of the data, the schema will override Fullstory's default type inference.",
+              "x-fullstory-doc-example-ignore": true,
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "object",
+                  "description": "A mapping of field names to their corresponding types."
+                }
+              }
+            }
+          },
+          "description": "Server response for created events",
+          "required": [
+            "name"
+          ]
+        },
+        "description": "Page of events import responses for the batch import"
+      },
+      "total_records": {
+        "type": "string",
+        "example": "1200",
+        "description": "Total number of records in this batch import"
+      },
+      "next_page_token": {
+        "type": "string",
+        "example": "asd543=",
+        "description": "The token that can be used in a subsequent request to fetch the next page of import results"
+      }
+    },
+    "description": "Server response for retrieving batch events imported",
+    "example": {
+      "results": [
+        {
+          "user": {
+            "id": "123456789",
+            "uid": "xyz123"
+          },
+          "session": {
+            "id": "123456789:1298251231",
+            "uid": "xyz123"
+          },
+          "context": {
+            "browser": {
+              "url": "https://app.example.com",
+              "user_agent": "Example_User_Agent",
+              "initial_referrer": "https://referrer.example.com"
+            }
+          },
+          "name": "Support Ticket",
+          "timestamp": "2022-03-15T14:23:23Z",
+          "properties": {
+            "id": 424242,
+            "priority": "Normal",
+            "source": "Email",
+            "title": "Account locked out"
+          }
+        }
+      ],
+      "total_records": "1200",
+      "next_page_token": "asd543="
+    }
+  }
+}

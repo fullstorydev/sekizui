@@ -1,0 +1,25 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/api/v1/export/get",
+  "operation_id": "get-event-export",
+  "title": "Get Event Export",
+  "description": ":::note\nPlease use the [Segment Export API](../../segments/create-segment-export) to extract data recorded by Fullstory.\n:::\nDownload a Data Export bundle\n### Legacy Data Export\nYou can download a collection of session events for your own analysis using Fullstory's [Data Export](https://help.fullstory.com/technical-questions/data-export) feature.\nThe `get` endpoint allows you to download a specific data export bundle given its ID. Our servers will respond with the bytes composing a JSON document (optionally gzipped) of the request data.\nIf your client obeys the `Content-Disposition` header, then the downloaded file will automatically be called DataExport.json(.gz).\nData Export is an Enterprise pricing tier add-on. See [pricing page](https://www.fullstory.com/plans) for more details.\n### Limits\n* This endpoint is rate limited at 2 downloads/minute. Any additional requests over this limit will return an HTTP 429 status as well as the number of seconds to wait until the next request in the `Retry-After` header. ### Additional Information\n* [Export Fields](../../segments/export-fields/) * [List Event Exports](../list-event-exports) * [What is Data Export?](https://help.fullstory.com/technical-questions/data-export) * [Hauser](https://github.com/fullstorydev/hauser) is an open source project for migrating Data Exports into your data warehouse.",
+  "permission": "Architect",
+  "deprecated": true,
+  "servers": [
+    "https://export.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/exports/get-event-export/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "The id of the data export bundle to download, which was found from the response to a prior [LIST request](../list-event-exports).",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ]
+}

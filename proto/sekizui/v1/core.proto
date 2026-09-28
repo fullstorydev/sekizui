@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+package sekizui.v1;
+
+// core.proto — identity, delegation, and capabilities.
+//
+// DESIGN.md references: §4.4 (identity/delegation), §4.9 (catalog), D6, D7, D37, D39.
+//
+// NOTE ON MODULE PATH: there is deliberately no `option go_package` here. buf
+// managed mode derives it from `go_package_prefix` in buf.gen.yaml, which is
+// the single place the placeholder module path (D36) has to change before first
+// release. Declaring it per-file as well would mean six sources of truth that
+// managed mode silently overrides anyway.
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+// Identity is the full authorisation context of a request.
+//
+// Three separate things, deliberately not collapsed (§4.4):
+//   caller  — PROVEN. Who is on the wire.
+//   subject — ASSERTED. Who the action is on behalf of. Must be authorised.
+//   chain   — the delegation path, recorded for audit.
+//
+// Standalone deployments are the degenerate case: caller == subject and the
+// chain has length 1 (D6). There is no separate mode.
+//
+// There is deliberately NO operator/customer field. One deployment == one
+// operator's world (D37); customer isolation belongs to whatever embeds Sekizui.
+message Identity {
+  Caller caller = 1;
+  Subject subject = 2;
+
+  // Full delegation path, outermost first. e.g. ["mesh:primary", "agent:triage"].
+  // Recorded in every Decision (D39) — "who authorised this", as distinct from
+  // Causation, which records "what triggered this".
+  repeated string chain = 3;
+
+  // Correlates this request across traces, envelopes, and decision records.
+  string trace_id = 4;
+}
+
+// Caller is the cryptographically proven identity on the wire.
+message Caller {
+  // e.g. "mesh:primary", "agent:triage", "user:alice", "reflex:checkout-friction".
+  // Reflexes are principals like any other — no bypass (D18).
+  string principal = 1;
+
+  AuthMethod method = 2;
+
+  // Certificate fingerprint or token subject. Recorded for audit; never a secret.
+  string credential_id = 3;
+}
+
+enum AuthMethod {
+  AUTH_METHOD_UNSPECIFIED = 0;
+  AUTH_METHOD_MTLS = 1;   // workload identity (SPIFFE or platform equivalent)
+  AUTH_METHOD_TOKEN = 2;  // signed bearer token
+
+  // In-process, with no authentication performed because none is possible.
+  //
+  // A reflex has no certificate and no token: it IS Sekizui, constructing an
+  // identity for a rule an operator configured. UNSPECIFIED would be wrong —
+  // that is the zero value meaning "nobody set this", and an audit row cannot
+  // then distinguish a deliberate internal action from a field somebody forgot
+  // to populate. Those are different facts and a reviewer needs both.
+  AUTH_METHOD_INTERNAL = 3;
+}
+
+// Subject is the principal an action is performed on behalf of.
+//
+// ASSERTED means the caller claims it and Sekizui checks `may_speak_for`
+// (§4.4.2 tier 1). SIGNED means an identity provider the caller does not
+// control vouched for it (tier 2) — the caller cannot forge it.
+//
+// Same wire shape for both tiers, so tier 2 is a verification upgrade rather
+// than a schema migration.
+message Subject {
+  string principal = 1;
+  Assertion assertion = 2;
+
+  // Present only when assertion == ASSERTION_SIGNED: the SHA-256 of the token,
+  // so a record joins to a token without holding one (D318) — the token itself
+  // is a bearer credential and is never recorded.
+  bytes proof = 3;
+
+  // SIGNED ONLY (D303, D318), each additive so tier two stays a verification
+  // upgrade rather than a schema migration (§4.4.2):
+  //
+  // the pinned issuer that signed the token;
+  string issuer = 4;
+
+  // the `role:` principal whose grants the token's role selected — the record
+  // names the individual in `principal` and the grant set here;
+  string role = 5;
+
+  // true when the token carried no certificate binding and its issuer allowed
+  // that (`require_bound: false`) — relaxed by a visible act, and visible here;
+  bool unbound = 6;
+
+  // the token's narrowing: grants it listed (which may only intersect with the
+  // role's) and lenses it listed (which may only add);
+  repeated string token_grants = 7;
+  repeated string token_lenses = 8;
+
+  // grants the token claimed that its role does not hold — refused, and noted,
+  // because a token claiming more than its role is either a broker bug or a
+  // forgery testing the edge (D303).
+  repeated string excess_grants = 9;
+}
+
+enum Assertion {
+  ASSERTION_UNSPECIFIED = 0;
+  ASSERTION_ASSERTED = 1;
+  ASSERTION_SIGNED = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Capabilities
+// ---------------------------------------------------------------------------
+
+// Capability is one granted (action x target x constraints) triple.
+//
+// Effective permission for a request is the INTERSECTION of the caller's and
+// the subject's capabilities (D7) — closing escalation in both directions.
+message Capability {
+  // e.g. "jira.create_issue", "bigquery.query", "kafka.publish".
+  string action = 1;
+
+  // Target *reference*, not a resolved target. See Command.target_ref.
+  string target_ref = 2;
+
+  // Field constraints, e.g. {"project": {in: ["PROJ"]}}.
+  map<string, Constraint> where = 3;
+
+  Limits limits = 4;
+
+  // Human/LLM-readable, WITH CONSTRAINTS INLINED (§4.9 property 2):
+  //   "Comment on an issue in Jira instance acme. Only project PROJ permitted."
+  // Generated, never hand-written, so it cannot drift from what is enforceable.
+  string description = 5;
+
+  // ALLOW or ESCALATE (human approval required).
+  Disposition disposition = 6;
+
+  // For an MCP tool whose target shares an upstream budget with native
+  // targets, the reviewer's declared relation (D323): the native actions it
+  // mirrors, or "none" (it reaches what only it reaches), or "opaque" (nobody
+  // could bound what it reaches). Empty for every other capability. Grant
+  // review reads the doors onto one upstream together through this.
+  repeated string native = 7;
+}
+
+enum Disposition {
+  DISPOSITION_UNSPECIFIED = 0;
+  DISPOSITION_ALLOW = 1;
+  DISPOSITION_ESCALATE = 2;
+}
+
+message Constraint {
+  repeated string in = 1;
+  repeated string not_in = 2;
+  string matches = 3;   // regex
+  string contains = 4;
+  double gte = 5;
+  double lte = 6;
+}
+
+message Limits {
+  uint32 rate_per_hour = 1;
+  uint64 max_bytes = 2;
+  uint32 max_results = 3;
+}

@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package sekizui.v1;
+
+import "google/protobuf/struct.proto";
+
+// seiren.proto — 精錬, refining ore into metal: the third tier.
+//
+// Every governed read returns SILVER — shaped by the connector's closed schema,
+// gated by anzen and policy, lensed by shin. A SEIREN is silver refined by the
+// `refines:` rules a deployment imposed on this caller, computed over the WHOLE
+// result and delivered BESIDE the rows, never instead of them (D297, D300,
+// D317). The caller asks for nothing: configuration imposes it.
+//
+// DESIGN.md references: §4.11.8, D297, D298, D300, D317.
+
+// Seiren is one refinement of one result.
+//
+// **THE CONNECTOR TYPES `value`; THE ENGINE OWNS THE REST (D317).** `window`
+// and `unavailable` are produced identically for every seiren type, so they are
+// declared once here rather than restated by every connector's schema with
+// nothing checking the copies agree — which is how D317 revised D300.
+message Seiren {
+  // The seiren type every applied rule writes, including version —
+  // "fullstory.session_context.v1". Registered and owned by the connector.
+  string type = 1;
+
+  // One key per rule that ran and matched, typed by `type`'s schema and lensed
+  // for the caller like any payload. A `first` that found nothing writes no
+  // key: read an absent key together with `window`.
+  google.protobuf.Struct value = 2;
+
+  // What the seiren covers.
+  SeirenWindow window = 3;
+
+  // Everything the seiren could not give in full, one entry per key — so a
+  // partial seiren never reads as complete (D300, D317). TYPED, so the list
+  // grows by a kind rather than a field: a key a rule could not write at all,
+  // a key it wrote only in part, and in P5 a lookup its budget or deadline
+  // refused (D298).
+  repeated SeirenGap gaps = 4;
+
+  // The rules that ran, sorted.
+  repeated string rules = 5;
+}
+
+// SeirenWindow is the span of the result the seiren was computed over (D300).
+//
+// `truncated` is true when the connector returned only PART of what exists —
+// Generate Context returns a session's LAST events — so "no login in these
+// events" cannot read as "no login in this session".
+message SeirenWindow {
+  string first_event_time = 1;
+  string last_event_time = 2;
+  bool truncated = 3;
+}
+
+// SeirenGap is one key the seiren could not give in full, and why.
+message SeirenGap {
+  // The key the rule writes.
+  string key = 1;
+
+  SeirenGapKind kind = 2;
+
+  // Names the cause without its value: the lens and the path it withheld, or
+  // how many items a limit kept of how many there were.
+  string reason = 3;
+}
+
+// SeirenGapKind says what a gap MEANS for the key — the difference a consumer
+// must not have to parse out of `reason`.
+enum SeirenGapKind {
+  SEIREN_GAP_KIND_UNSPECIFIED = 0;
+
+  // The key is ABSENT: the rule could not run for this caller (a lens withheld
+  // a path it reads) or not over this result (a row was not admitted).
+  SEIREN_GAP_KIND_UNAVAILABLE = 1;
+
+  // The key is PRESENT and PARTIAL: a `list` or `count` kept `limit` items of
+  // more (D300's limit, CONTRACTS 146).
+  SEIREN_GAP_KIND_TRUNCATED = 2;
+}

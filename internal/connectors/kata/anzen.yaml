@@ -1,0 +1,16 @@
+# SUGGESTED — kata's anzen ceiling (D314's shape, P5 step 13): the reference form of a connector's
+# anzen.yaml.
+#
+# A CONFIG FRAGMENT a deployment drops into its own config directory. A CEILING, NOT AN OPINION (D71):
+# checked before policy, so the action is refused even where a grant permits it — a wildcard
+# `kata.*` included — recorded naming the rule, and reported withheld by Describe. A deployment that
+# needs it allows it deliberately, by scoping the rule with `applies_to` in a reviewed change.
+#
+# kata has one irreversible write. hako/reference carries its own ceiling inline, beside the prose
+# that teaches why (blueprint step 8); this file is the shape a connector SHIPS.
+anzen:
+  - name: kata-irreversible
+    enabled: true
+    mode: enforce
+    forbids:
+      - kata.delete_project   # nothing undoes it

@@ -1,0 +1,62 @@
+# kata's data schemas (D279) — what this connector emits, declared by the
+# connector. CLOSED BY DEFAULT: a field not named here is stripped at ingest.
+- type: kata.row.v1
+  schema:
+    type: object
+    properties:
+      ordinal: {type: number}
+      ref: {type: string}
+
+# What kata.read returns. `user.email` is declared ON PURPOSE: kata is the
+# fixture a shin lens proves itself against (no-pii-to-analytics withholds it),
+# which is the D279 division of labour — the connector says what exists, the
+# deployment says who may see it.
+- type: kata.read_result.v1
+  schema:
+    type: object
+    properties:
+      id: {type: string}
+      tenant: {type: string}
+      target: {type: string}
+      at: {type: string, format: date-time}
+      user:
+        type: object
+        properties:
+          id: {type: string}
+          email: {type: string}
+
+# What every kata write returns: a fixture ECHO of the call (D283). The echo
+# fields are OPEN deliberately — kata exists to show a step what was sent and
+# where the idempotency key went, and it echoes nothing it did not receive.
+- type: kata.write_result.v1
+  schema:
+    type: object
+    properties:
+      action: {type: string}
+      target: {type: string}
+      tenant: {type: string}
+      at: {type: string, format: date-time}
+      echo_args: {type: object, additionalProperties: true}
+      echo_headers: {type: object, additionalProperties: true}
+
+# The seiren kata's refines rules write (D317): a receipt of what was read or
+# written, and when. Small on purpose — kata TEACHES the Refiner contract, and
+# its write rule is the one that puts a seiren beside a CommandResult.
+- type: kata.receipt.v1
+  schema:
+    type: object
+    properties:
+      read:
+        type: array
+        items:
+          type: object
+          properties:
+            id: {type: string}
+            at: {type: string, format: date-time}
+      write:
+        type: array
+        items:
+          type: object
+          properties:
+            action: {type: string}
+            at: {type: string, format: date-time}

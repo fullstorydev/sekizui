@@ -1,0 +1,56 @@
+{
+  "tier": "beta",
+  "method": "GET",
+  "path": "/v2beta/datasets",
+  "operation_id": "ListDatasets",
+  "title": "List Datasets",
+  "description": "Returns the datasets your credentials can read.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/beta/datasets/list-datasets/",
+  "response": {
+    "type": "object",
+    "properties": {
+      "datasets": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "1234567",
+              "description": "The dataset's unique identifier."
+            },
+            "name": {
+              "type": "string",
+              "example": "Mobile Users",
+              "description": "The dataset's name."
+            },
+            "description": {
+              "type": "string",
+              "example": "Users and sessions on mobile devices",
+              "description": "Optional. The dataset's description."
+            }
+          },
+          "description": "A dataset your credentials can read.",
+          "required": [
+            "id",
+            "name"
+          ]
+        }
+      }
+    },
+    "description": "The datasets your credentials can read.",
+    "example": {
+      "datasets": [
+        {
+          "id": "1234567",
+          "name": "Mobile Users",
+          "description": "Users and sessions on mobile devices"
+        }
+      ]
+    }
+  }
+}

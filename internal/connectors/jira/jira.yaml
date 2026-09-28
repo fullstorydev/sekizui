@@ -1,0 +1,124 @@
+# The thin Jira connector's GOVERNANCE HALF — blueprint steps 5 to 9.
+#
+# **A DRIVER THAT WORKS AND A CONNECTOR THAT IS SAFE TO RUN ARE DIFFERENT
+# MILESTONES (D175).** `jira.go` is the driver. This is the rest of the
+# connector, and it is the half nothing would have failed the build over.
+#
+# Shipped BESIDE THE DRIVER rather than merged into `acceptance.yaml`, for the
+# reason blueprint step 11 gives: a target whose `base_url` is not known until a
+# test server starts cannot use the shared fixture, which is loaded once before
+# any step runs. What a deployment installs is this, with `base_url` and
+# `credential` pointed at a real site.
+
+# --- STEP 5: the target, with the operational limits ON IT --------------------
+targets:
+  - ref: jira:acme
+    kind: jira
+    tenant: acme
+    residency: eu
+    base_url: https://acme.atlassian.net
+    # `file://`, never `env://` — an environment variable declares no version and
+    # the default credential policy requires one (D111, D153).
+    #
+    # **THE FILE HOLDS `base64(email:api_token)`, NOT THE TOKEN.** Jira Cloud's
+    # header is `Basic <base64(email:api_token)>`, so the credential is a
+    # COMPOSITE of an identity and a secret. Sekizui has no way to express that:
+    # `SetAuthorization` emits `<scheme> <material>`. Recorded as a blueprint gap
+    # rather than worked around — the cost is that the two halves cannot be
+    # rotated independently and an operator base64s by hand.
+    credential: file:///etc/sekizui/jira-acme
+    limits:
+      rate_per_hr: 500
+      # **ONE BUCKET ACROSS EVERY DOOR ONTO ONE UPSTREAM (D52, §4.3.4).** If an
+      # Atlassian MCP server is ever configured alongside this driver, it names
+      # this same budget — otherwise two paths each politely observe a limit the
+      # vendor applies once, and the vendor sees double.
+      budget: atlassian
+      retry_attempts: 3
+      breaker_trip: 5
+      max_lifetime_s: 3600
+
+# --- STEP 6: a NARROW grant ---------------------------------------------------
+#
+# Both capabilities name their target. A capability with no `target:` authorises
+# the action against every target of that kind, including ones added later by
+# somebody who never read this grant — which is what makes it invisible in review
+# rather than merely wide.
+#
+# **IF JIRA BECOMES REACHABLE BY MCP TOO, THIS REVIEW BECOMES A UNION (D52,
+# §4.9a.8).** `jira.comment_issue` and an Atlassian MCP `addComment` tool are
+# different actions in different namespaces and neither glob reaches the other,
+# so denying one leaves the other open. No machine can adjudicate whether an MCP
+# tool and a native action are equivalent — that is a semantic judgement about
+# somebody else's API — so it is written down here as a human obligation.
+grants:
+  - principal: agent:triage
+    allow:
+      - {action: jira.read_issue, target: jira:acme, where: {target_residency: [eu]}}
+      - {action: jira.comment_issue, target: jira:acme}
+
+# --- STEP 7: an IMPOSED lens, naming what THIS vendor's payload carries -------
+#
+# **WRITTEN BY SOMEBODY WHO READ THE RESPONSE, WHICH IS THE ONLY QUALIFICATION
+# THAT COUNTS.** A Jira issue carries a reporter with an email address, and a
+# description that support agents paste customer detail into — names, order
+# numbers, occasionally card fragments. An agent triaging an issue needs the
+# summary and the status. It does not need to be able to email the reporter, and
+# an address that reaches a context window reaches every log and prompt
+# downstream of it.
+#
+# `type:` is the PAYLOAD TYPE, matching the read action's `OutputType` and the
+# `payload_schemas` key below — never the schema URI (D41, D88, D221).
+shin:
+  - name: jira-issue-detail-withheld
+    enabled: true
+    # Empty would also mean imposed. Stated because this is the one restrictive
+    # default in the file and a reader should not have to know that to be sure.
+    mode: imposed
+    type: jira.issue.v1
+    withholds: [fields.reporter.emailAddress, fields.description]
+    because: "issue descriptions carry customer detail pasted by support agents, and
+      the reporter's address is a named individual's contact detail; a triage agent
+      needs the summary and the status and can act on neither"
+
+# --- STEP 8: a preventive guard naming the IRREVERSIBLE actions ---------------
+#
+# **IRREVERSIBLE IS THE CRITERION, NOT DANGEROUS.** A comment can be deleted by a
+# subsequent call, so it is a policy question and lives in the grant above.
+# Deleting an issue destroys its history and cannot be undone, so it is a ceiling
+# question — forbidden here even though this thin driver implements no deletion,
+# because a ceiling written before the capability exists is one nobody has to
+# remember at the moment the capability lands.
+#
+# `applies_to` omitted means EVERY principal, which is right for a blocklist: a
+# destructive action nobody should perform is not a per-principal question.
+anzen:
+  - name: jira-no-destruction
+    enabled: true
+    mode: enforce
+    forbids: ["jira.delete_*"]
+
+# --- STEP 4's other half: the payload schema ships with the driver (D279) ---
+#
+# `jira.issue.v1` is declared in `internal/connectors/jira/schemas.yaml`, embedded
+# in the driver. It is the ALLOWLIST of what an issue read brings in — closed by
+# default, so Jira's other fields and every custom field are stripped at ingest
+# until this connector names them. A schema written here for it is refused.
+
+# --- STEP 9: the signals ------------------------------------------------------
+#
+# **THIS CONNECTOR RAISES NONE OF THE CLOSED VOCABULARY, and saying so IS the
+# step** — a declared signal nothing raises is a rule boot validates, an operator
+# believes is in force, and that can never fire (CONTRACTS 65).
+#
+#   - `spec_drift` — native driver, compile-time action set. There is no
+#     vendor-published surface to compare against, so nothing here can detect
+#     divergence. The MCP driver raises this one; a native driver structurally
+#     cannot.
+#   - `tenant_mismatch` — the egress assertion fires in the enforcement path, so
+#     the signal is the path's to raise (P2 step 45) rather than this
+#     connector's to declare.
+#   - `budget_exceeded`, `denial_storm`, `audit_unavailable` — properties of
+#     Sekizui's own operation, not of Atlassian's.
+#   - `credential_stale` — the pool invalidates on a version change and this
+#     driver holds no cache, so it never observes a stale credential to report.

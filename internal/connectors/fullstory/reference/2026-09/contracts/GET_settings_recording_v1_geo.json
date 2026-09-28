@@ -1,0 +1,70 @@
+{
+  "tier": "v1",
+  "method": "GET",
+  "path": "/settings/recording/v1/geo",
+  "operation_id": "GetGeoSettings",
+  "title": "Get Geo Settings",
+  "description": "Returns the current geo settings.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/settings/get-geo-settings/",
+  "response": {
+    "type": "object",
+    "example": {
+      "recordGeoMode": "GEO_ALLOW_LIST",
+      "recordGeoZones": [
+        "CA",
+        "US"
+      ],
+      "metadata": {
+        "lastUpdated": "2020-10-01T23:53:06.038Z",
+        "lastUpdatedBy": "bob@example.com",
+        "created": "2020-10-01T23:53:06.038Z",
+        "createdBy": "bob@example.com"
+      }
+    },
+    "properties": {
+      "recordGeoMode": {
+        "type": "string",
+        "enum": [
+          "GEO_ALL",
+          "GEO_ALLOW_LIST",
+          "GEO_BLOCK_LIST"
+        ],
+        "default": "GEO_ALL"
+      },
+      "recordGeoZones": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this entity was last updated."
+          },
+          "lastUpdatedBy": {
+            "type": "string",
+            "description": "Who made the last update to this entity."
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this entity was first created."
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Who first created this entity."
+          }
+        },
+        "title": "This is a public-facing semi-duplicate of protoauditstore.AuditMetadata"
+      }
+    }
+  }
+}

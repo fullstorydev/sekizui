@@ -1,0 +1,224 @@
+{
+  "tier": "beta",
+  "method": "GET",
+  "path": "/v2beta/privacy/elements",
+  "operation_id": "ListElementBlockRules",
+  "title": "List Element Block Rules",
+  "description": "Returns all element block rules for the organization, including both custom rules and built-in rules. Results are paginated. Use the next_page_token from the response to retrieve subsequent pages.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/beta/elementblockrules/list-element-block-rules/",
+  "parameters": [
+    {
+      "name": "page_token",
+      "description": "Pagination token returned from a previous list request. Omit for the first page.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "description": "Server-generated unique identifier."
+            },
+            "name": {
+              "type": "string",
+              "example": "Mask Credit Card Fields",
+              "description": "Human-readable name for the rule."
+            },
+            "description": {
+              "type": "string",
+              "example": "Masks all credit card input fields on the checkout page",
+              "description": "Administrator notes about this rule."
+            },
+            "source": {
+              "description": "Defines which elements the rule targets using CSS selectors. For web, this matches DOM elements. For mobile platforms, this matches elements in the Fullstory mobile SDK's view hierarchy.",
+              "type": "object",
+              "properties": {
+                "selector": {
+                  "type": "string",
+                  "example": "div.sensitive-data",
+                  "description": "A CSS selector identifying the elements that this block rule should apply to."
+                },
+                "exception_selectors": {
+                  "type": "array",
+                  "example": [
+                    "span.public-info"
+                  ],
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "CSS selectors identifying elements that should be excluded from this rule, even if they match the primary selector. For example, if the selector targets all form inputs, an exception selector could exempt a specific non-sensitive field."
+                },
+                "backup_selector": {
+                  "type": "string",
+                  "example": ".sensitive-data",
+                  "description": "Output only. A simplified version of the primary selector, automatically generated for rules that use descendant selector syntax and target mobile platforms. Used by older Fullstory mobile SDK versions that do not support descendant selector syntax. This field is read-only and cannot be set directly.",
+                  "readOnly": true
+                }
+              },
+              "required": [
+                "selector"
+              ]
+            },
+            "operation": {
+              "description": "Defines what action the rule performs on matched elements.",
+              "type": "object",
+              "properties": {
+                "action": {
+                  "example": "MASK",
+                  "description": "The privacy action applied to matched elements. EXCLUDE removes the element from capture entirely. MASK replaces text content and input values with placeholder characters, preventing the original content from being captured. UNMASK explicitly captures the element as-is, overriding any broader masking rules.",
+                  "type": "string",
+                  "enum": [
+                    "EXCLUDE",
+                    "MASK",
+                    "UNMASK"
+                  ],
+                  "default": "BLOCK_TYPE_UNSPECIFIED"
+                },
+                "consent": {
+                  "type": "boolean",
+                  "example": false,
+                  "description": "When true, elements matching this rule may be captured in sessions where the end user has given explicit consent via the Fullstory consent API. When false (the default), the rule's privacy action applies regardless of consent status."
+                },
+                "scope": {
+                  "example": "ALL_SESSIONS",
+                  "description": "Controls which sessions this rule applies to. ALL_SESSIONS: Applies to all captured sessions (default). NO_SESSIONS: Disables the rule without deleting it. PREVIEW_SESSIONS_ONLY: Applies only during preview sessions, which are short-lived test sessions you can start from the Fullstory app to verify rule behavior before going live. LIVE_SESSIONS_ONLY: Applies only to production sessions (excludes preview sessions).",
+                  "type": "string",
+                  "enum": [
+                    "ALL_SESSIONS",
+                    "NO_SESSIONS",
+                    "PREVIEW_SESSIONS_ONLY",
+                    "LIVE_SESSIONS_ONLY"
+                  ],
+                  "default": "ALL_SESSIONS"
+                }
+              },
+              "required": [
+                "action",
+                "scope"
+              ]
+            },
+            "platforms": {
+              "type": "array",
+              "example": [
+                "WEB"
+              ],
+              "items": {
+                "type": "string",
+                "enum": [
+                  "WEB",
+                  "ANDROID",
+                  "IOS"
+                ],
+                "default": "PLATFORM_UNSPECIFIED",
+                "description": "Platform defines which capture platforms the rule applies to.\n\n - WEB: Rule applies to web captures.\n - ANDROID: Rule applies to Android captures.\n - IOS: Rule applies to iOS captures."
+              },
+              "description": "Which capture platforms this rule applies to."
+            },
+            "editable": {
+              "example": "EDITABLE_ANY",
+              "description": "Output only. Indicates which fields can be modified when updating this rule. EDITABLE_ANY: all fields can be changed (custom rules). EDITABLE_DESCRIPTION_ONLY: only the description can be changed. EDITABLE_DESCRIPTION_SCOPE_AND_EXCEPTIONS: the description, scope, and exception selectors can be changed.",
+              "readOnly": true,
+              "type": "string",
+              "enum": [
+                "EDITABLE_ANY",
+                "EDITABLE_DESCRIPTION_ONLY",
+                "EDITABLE_DESCRIPTION_SCOPE_AND_EXCEPTIONS"
+              ],
+              "default": "EDITABLE_ANY"
+            },
+            "group_id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 0,
+              "description": "Output only. Identifies which built-in rule group this rule belongs to, if any. A value of 0 indicates a custom (user-created) rule. Non-zero values identify built-in rule groups such as Form Privacy or Mobile Unmask Rules.",
+              "readOnly": true
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Output only. When this rule was created.",
+              "readOnly": true
+            },
+            "last_updated": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Output only. When this rule was last updated.",
+              "readOnly": true
+            },
+            "last_updated_by": {
+              "type": "string",
+              "example": "user@example.com",
+              "description": "Output only. The user who last updated this rule.",
+              "readOnly": true
+            }
+          },
+          "description": "Represents a CSS-based privacy rule that controls how Fullstory captures page content.",
+          "required": [
+            "id",
+            "name",
+            "source",
+            "operation",
+            "platforms",
+            "editable",
+            "group_id"
+          ]
+        },
+        "description": "The list of element block rules."
+      },
+      "total_records": {
+        "type": "string",
+        "format": "int64",
+        "example": 12,
+        "description": "The total number of element block rules across all pages."
+      },
+      "next_page_token": {
+        "type": "string",
+        "description": "Pagination token for the next page of results. Null when there are no more results."
+      }
+    },
+    "description": "Response containing a list of element block rules.",
+    "required": [
+      "results",
+      "total_records"
+    ],
+    "example": {
+      "results": [
+        {
+          "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "name": "Mask Credit Card Fields",
+          "description": "Masks all credit card input fields on the checkout page",
+          "source": {
+            "selector": "div.sensitive-data",
+            "exception_selectors": [
+              "span.public-info"
+            ]
+          },
+          "operation": {
+            "action": "MASK",
+            "consent": false,
+            "scope": "ALL_SESSIONS"
+          },
+          "platforms": [
+            "WEB"
+          ]
+        }
+      ],
+      "total_records": 12
+    }
+  }
+}

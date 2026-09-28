@@ -1,0 +1,41 @@
+# v2 — see buf.yaml.
+#
+# D34: generated code is COMMITTED. Wire types are exactly where a reviewable
+# diff matters most; a field-number change should be visible in a PR, not hidden
+# behind a build step.
+#
+# LOCAL plugins, not remote. Remote execution needs network at generate time and
+# would make generated output depend on a service being up. `make tools` installs
+# pinned binaries into ./bin.
+version: v2
+
+# Managed mode owns go_package. The .proto files deliberately do NOT declare
+# `option go_package` themselves — managed mode overrides it regardless, so
+# per-file declarations are dead weight that can silently disagree with what is
+# actually generated. (They did: the files said `pkg/schema/sekizuiv1` while
+# generation produced `pkg/schema/sekizui/v1`, and nothing caught it until the
+# first `go mod tidy`.)
+#
+# This is therefore THE ONE PLACE the placeholder module path (D36, CONTRACTS §4
+# item 1) changes before first release.
+#
+# Note the resulting asymmetry, which is normal for protobuf: the import path is
+# .../pkg/schema/sekizui/v1 (mirroring proto/sekizui/v1/) while the Go package
+# NAME is `sekizuiv1`, derived from the proto package `sekizui.v1`. Import sites
+# alias it explicitly for that reason.
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/fullstorydev/sekizui/pkg/schema
+
+plugins:
+  - local: protoc-gen-go
+    out: pkg/schema
+    opt: paths=source_relative
+
+  - local: protoc-gen-go-grpc
+    out: pkg/schema
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false

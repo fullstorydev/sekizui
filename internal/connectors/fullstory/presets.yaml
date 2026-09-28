@@ -1,0 +1,226 @@
+# SUGGESTED — the Fullstory connector's presets (D327, P5 criteria 10-12).
+#
+# A CONFIG FRAGMENT: drop it into a deployment's config directory (D278), beside the grants that
+# name these presets, or write your own. Grants expand from the COPY your deployment holds, so a
+# connector release that changes this file changes nothing anyone may do until you take the change
+# in a reviewed commit; boot tells you when your copy and this suggestion differ.
+#
+# A grant names one:  - {preset: fullstory.session_review, target: fs:main}
+#
+# THREE PRESETS MIRROR FULLSTORY'S OWN PERMISSION LEVELS — Standard, Architect, Admin, each
+# operation's `x-fullstory-permission-level` in the reference snapshot (D304) — and each holds every
+# action at or below its level, no more: boot refuses a `mirrors:` claim the snapshot contradicts.
+# They are the vendor's truth, not advice: they contain writes, and the connector's suggested anzen
+# ceiling (anzen.yaml) still refuses the irreversible and recording-configuration ones under any
+# preset. The fourth is narrower and is the one most agents want.
+#
+# DRAFTED FROM THE 2026-09 SNAPSHOT; the lists are the snapshot's, the grouping is a proposal.
+presets:
+  - name: fullstory.session_review
+    mirrors: Standard
+    explain: >-
+      Read-only session review — a session's events and summary, the session list, saved session
+      profiles and segments. No writes, no users, no org configuration. The preset for an agent that
+      investigates what happened in a session.
+    actions:
+      - fullstory.session_events
+      - fullstory.get_session_events
+      - fullstory.list_sessions
+      - fullstory.generate_summary
+      - fullstory.generate_summary_with_overrides
+      - fullstory.get_session_profile
+      - fullstory.list_session_profiles
+      - fullstory.list_segments
+      - fullstory.get_segment
+
+  - name: fullstory.standard
+    mirrors: Standard
+    explain: >-
+      Everything Fullstory's Standard level may call — reads of sessions, segments and settings, and
+      Standard's writes (events, user properties, session profiles, batch imports). Mirrors the vendor
+      level exactly; narrow it for an agent.
+    actions:
+      - fullstory.cancel_operation  # write
+      - fullstory.create_annotation  # write
+      - fullstory.create_batch_events_import_job  # write
+      - fullstory.create_batch_user_import_job  # write
+      - fullstory.create_event  # write
+      - fullstory.create_session_profile  # write
+      - fullstory.create_user_stream  # write
+      - fullstory.delete_session_profile  # write
+      - fullstory.generate_summary
+      - fullstory.generate_summary_with_overrides
+      - fullstory.get_api_key_owner
+      - fullstory.get_batch_events_import_status
+      - fullstory.get_batch_user_import_status
+      - fullstory.get_domain_settings
+      - fullstory.get_domain_settings_history
+      - fullstory.get_extraction_rule
+      - fullstory.get_geo_settings
+      - fullstory.get_geo_settings_history
+      - fullstory.get_operation_status
+      - fullstory.get_quotas
+      - fullstory.get_recording_block_rules
+      - fullstory.get_recording_block_rules_history
+      - fullstory.get_recording_features
+      - fullstory.get_recording_features_history
+      - fullstory.get_segment
+      - fullstory.get_session_events
+      - fullstory.get_session_profile
+      - fullstory.get_targeting_settings
+      - fullstory.get_targeting_settings_history
+      - fullstory.get_user_v1
+      - fullstory.list_datasets
+      - fullstory.list_extraction_rules
+      - fullstory.list_operations
+      - fullstory.list_segments
+      - fullstory.list_session_profiles
+      - fullstory.list_sessions
+      - fullstory.poll
+      - fullstory.session_events
+      - fullstory.set_user_events_v1  # write
+      - fullstory.set_user_properties_v1  # write
+      - fullstory.update_session_profile  # write
+      - fullstory.update_user  # write
+      - fullstory.upsert_user  # write
+
+  - name: fullstory.architect
+    mirrors: Architect
+    explain: >-
+      Standard plus what Architect adds — user reads, privacy and element-block reads, extraction
+      rules, and user deletion (refused by the suggested anzen ceiling unless a deployment allows it
+      deliberately).
+    actions:
+      - fullstory.cancel_operation  # write
+      - fullstory.create_annotation  # write
+      - fullstory.create_batch_events_import_job  # write
+      - fullstory.create_batch_user_import_job  # write
+      - fullstory.create_event  # write
+      - fullstory.create_session_profile  # write
+      - fullstory.create_user_stream  # write
+      - fullstory.delete_session_profile  # write
+      - fullstory.generate_summary
+      - fullstory.generate_summary_with_overrides
+      - fullstory.get_api_key_owner
+      - fullstory.get_batch_events_import_status
+      - fullstory.get_batch_user_import_status
+      - fullstory.get_domain_settings
+      - fullstory.get_domain_settings_history
+      - fullstory.get_extraction_rule
+      - fullstory.get_geo_settings
+      - fullstory.get_geo_settings_history
+      - fullstory.get_operation_status
+      - fullstory.get_quotas
+      - fullstory.get_recording_block_rules
+      - fullstory.get_recording_block_rules_history
+      - fullstory.get_recording_features
+      - fullstory.get_recording_features_history
+      - fullstory.get_segment
+      - fullstory.get_session_events
+      - fullstory.get_session_profile
+      - fullstory.get_targeting_settings
+      - fullstory.get_targeting_settings_history
+      - fullstory.get_user_v1
+      - fullstory.list_datasets
+      - fullstory.list_extraction_rules
+      - fullstory.list_operations
+      - fullstory.list_segments
+      - fullstory.list_session_profiles
+      - fullstory.list_sessions
+      - fullstory.poll
+      - fullstory.session_events
+      - fullstory.set_user_events_v1  # write
+      - fullstory.set_user_properties_v1  # write
+      - fullstory.update_session_profile  # write
+      - fullstory.update_user  # write
+      - fullstory.upsert_user  # write
+      - fullstory.archive_extraction_rule  # write
+      - fullstory.create_extraction_rule  # write
+      - fullstory.delete_user  # write
+      - fullstory.delete_user_v1  # write
+      - fullstory.get_batch_events_import_errors
+      - fullstory.get_batch_events_imports
+      - fullstory.get_batch_user_import_errors
+      - fullstory.get_batch_user_imports
+      - fullstory.get_create_user_stream_status
+      - fullstory.get_element_block_rule
+      - fullstory.get_privacy_settings
+      - fullstory.get_privacy_settings_history
+      - fullstory.get_user
+      - fullstory.list_element_block_rules
+      - fullstory.list_users
+      - fullstory.replace_extraction_rule  # write
+      - fullstory.unarchive_extraction_rule  # write
+      - fullstory.update_extraction_rule  # write
+
+  - name: fullstory.admin
+    mirrors: Admin
+    explain: >-
+      Every action this connector serves, Admin's element-block-rule writes included (refused by the
+      suggested anzen ceiling as recording configuration). For break-glass tooling, not agents.
+    actions:
+      - fullstory.cancel_operation  # write
+      - fullstory.create_annotation  # write
+      - fullstory.create_batch_events_import_job  # write
+      - fullstory.create_batch_user_import_job  # write
+      - fullstory.create_event  # write
+      - fullstory.create_session_profile  # write
+      - fullstory.create_user_stream  # write
+      - fullstory.delete_session_profile  # write
+      - fullstory.generate_summary
+      - fullstory.generate_summary_with_overrides
+      - fullstory.get_api_key_owner
+      - fullstory.get_batch_events_import_status
+      - fullstory.get_batch_user_import_status
+      - fullstory.get_domain_settings
+      - fullstory.get_domain_settings_history
+      - fullstory.get_extraction_rule
+      - fullstory.get_geo_settings
+      - fullstory.get_geo_settings_history
+      - fullstory.get_operation_status
+      - fullstory.get_quotas
+      - fullstory.get_recording_block_rules
+      - fullstory.get_recording_block_rules_history
+      - fullstory.get_recording_features
+      - fullstory.get_recording_features_history
+      - fullstory.get_segment
+      - fullstory.get_session_events
+      - fullstory.get_session_profile
+      - fullstory.get_targeting_settings
+      - fullstory.get_targeting_settings_history
+      - fullstory.get_user_v1
+      - fullstory.list_datasets
+      - fullstory.list_extraction_rules
+      - fullstory.list_operations
+      - fullstory.list_segments
+      - fullstory.list_session_profiles
+      - fullstory.list_sessions
+      - fullstory.poll
+      - fullstory.session_events
+      - fullstory.set_user_events_v1  # write
+      - fullstory.set_user_properties_v1  # write
+      - fullstory.update_session_profile  # write
+      - fullstory.update_user  # write
+      - fullstory.upsert_user  # write
+      - fullstory.archive_extraction_rule  # write
+      - fullstory.create_extraction_rule  # write
+      - fullstory.delete_user  # write
+      - fullstory.delete_user_v1  # write
+      - fullstory.get_batch_events_import_errors
+      - fullstory.get_batch_events_imports
+      - fullstory.get_batch_user_import_errors
+      - fullstory.get_batch_user_imports
+      - fullstory.get_create_user_stream_status
+      - fullstory.get_element_block_rule
+      - fullstory.get_privacy_settings
+      - fullstory.get_privacy_settings_history
+      - fullstory.get_user
+      - fullstory.list_element_block_rules
+      - fullstory.list_users
+      - fullstory.replace_extraction_rule  # write
+      - fullstory.unarchive_extraction_rule  # write
+      - fullstory.update_extraction_rule  # write
+      - fullstory.create_element_block_rule  # write
+      - fullstory.delete_element_block_rule  # write
+      - fullstory.update_element_block_rule  # write
+      - fullstory.update_element_block_rules  # write

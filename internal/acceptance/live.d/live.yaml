@@ -1,0 +1,46 @@
+# THE LIVE DEMO DEPLOYMENT (D324): D52's union, shown against Fullstory's REAL MCP on the maintainers' test org.
+#
+# A TEMPLATE. The file provider reads only absolute paths inside a declared root (D286), and a
+# machine's path does not belong in the tree, so `make run-live` renders this directory into
+# out/live.d with @SEKIZUI_ROOT@ replaced. The keys are the ones the capture deployment reads,
+# gitignored under dev/secrets; nothing here is material.
+#
+# SERVED `-residency us`, BECAUSE EXAMPLE IS NA1 — the same class `make run` and the acceptance suite
+# serve since D326 closed CONTRACTS 152. Its own instance still, because it reaches the real MCP.
+#
+# ONE BUDGET LINKS THE TWO DOORS, so every tool the MCP serves is held to its declared relation — all
+# drafted [opaque] in the connector's spec — and the anzen ceiling the connector suggests (composed
+# beside this file) forbids the irreversible writes whatever the grants say.
+demo: true
+
+stages: [raw, enriched, triaged, judged]
+llm_stages: [judged]
+
+targets:
+  - ref: fullstory-mcp
+    kind: mcp
+    tenant: example
+    residency: us
+    base_url: https://api.fullstory.com/mcp/fullstory
+    settings: {org_id: "@SEKIZUI_LIVE_ORG@"}
+    credential: 'file://@SEKIZUI_LIVE_KEY@'
+    limits: {budget: fullstory-live}
+  - ref: fs:example
+    kind: fullstory
+    tenant: example
+    residency: us
+    base_url: https://api.fullstory.com
+    credential: 'file://@SEKIZUI_LIVE_KEY@'
+    limits: {rate_per_hr: 600, burst: 60, budget: fullstory-live}
+
+grants:
+  # THE MCP DOOR ONLY. Every tool is [opaque], so the union refuses each one — before any call out.
+  - principal: agent:union
+    allow:
+      - {action: "mcp.fullstory.*", target: fullstory-mcp}
+  # BOTH DOORS: the whole native surface on the linked target satisfies [opaque], so a tool is served
+  # through the real MCP. The anzen ceiling still forbids the irreversible writes.
+  - principal: agent:union-native
+    allow:
+      - {action: "mcp.fullstory.*", target: fullstory-mcp}
+      - {action: "fullstory.*", target: fs:example}

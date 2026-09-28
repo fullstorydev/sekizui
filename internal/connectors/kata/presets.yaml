@@ -1,0 +1,33 @@
+# SUGGESTED — kata's presets (D327): the reference form of a connector's presets.yaml.
+#
+# A CONFIG FRAGMENT a deployment drops into its own config directory, beside the grants that name
+# these presets — hako/reference does exactly that. Grants expand from the deployment's COPY, never
+# from this file, so nothing a kata release does can widen a grant; kata embeds the same file and
+# returns it from SuggestedPresets() only so boot can say when a copy has fallen behind.
+#
+# KATA'S LEVELS ARE FICTIONAL AND EXIST TO TEACH connector.Leveled: viewer < contributor < owner.
+# A preset that says `mirrors:` may hold nothing above that level — boot and conformance.RunPresetter
+# refuse one that does.
+#
+# AND NO `owner` PRESET, ON PURPOSE. A connector need not package its most dangerous level: whoever
+# needs kata.delete_project grants it as one reviewed action, where a reader sees it, rather than
+# inside a name that sounds routine.
+presets:
+  - name: kata.viewer
+    mirrors: viewer
+    explain: >-
+      Read kata's rows. Nothing that changes anything — the preset for an agent that only looks.
+    actions:
+      - kata.read
+
+  - name: kata.contributor
+    mirrors: contributor
+    explain: >-
+      Read, and add to kata — issues, comments, records and events — without deleting anything.
+      The preset for an agent that files work.
+    actions:
+      - kata.read
+      - kata.create_issue
+      - kata.comment
+      - kata.upsert_record
+      - kata.append_event

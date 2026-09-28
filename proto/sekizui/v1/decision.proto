@@ -1,0 +1,549 @@
+syntax = "proto3";
+
+package sekizui.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "sekizui/v1/core.proto";
+import "sekizui/v1/envelope.proto";
+
+
+// decision.proto — the audit record. The artifact that makes the governance claim real.
+//
+// DESIGN.md references: §5.2.2, §5.4, D12, D23, D39.
+//
+// TWO PROPERTIES THAT NAIVE IMPLEMENTATIONS GET WRONG:
+//
+//  1. LOG THE DECISION, NOT JUST THE ACTION. Denials and escalations are the
+//     highest-value rows — "agent X tried to delete a project and was refused" is
+//     the sentence that justifies this entire service. Implementations that record
+//     only successful calls drop exactly that.
+//
+//  2. WRITE INTENT BEFORE THE SIDE EFFECT, OUTCOME AFTER. A crash mid-call must
+//     not leave zero trace of an action that may well have succeeded. Hence
+//     `phase`.
+
+message Decision {
+  string id = 1;
+
+  Phase phase = 2;
+
+  google.protobuf.Timestamp at = 3;
+
+  // FULL identity, EMBEDDED — not a reference to a request record (D39).
+  //
+  // Each row must be independently readable years later with no joins, must
+  // survive config changes, and must export to a SIEM as a self-contained fact.
+  // Storage is the cheapest thing in this design; duplication is the right trade.
+  Identity identity = 4;
+
+  string action = 5;
+  string target_ref = 6;
+
+  // Residency of the data touched. The audit sink must honour this, or shipping
+  // EU-resident records to a US warehouse makes the audit log itself the
+  // violation (D29 item 4).
+  string residency = 7;
+
+  // ALWAYS POPULATED, AND `VERDICT_UNSPECIFIED` IN A RECORD IS A DEFECT RATHER
+  // THAN A CATEGORY (D228). A row with no verdict is invisible to every query
+  // that filters on one, and a row that keeps an earlier stage's ALLOW after a
+  // later stage refused the command asserts that something which never happened
+  // was permitted. `gateway.refuse` floors this at VERDICT_DENY for exactly that
+  // reason; the fine-grained answer is `refused_by` plus `CommandResult.kind`,
+  // because this axis is deliberately coarse (D138) and collapses a policy
+  // denial, an unauthenticated caller, a residency ceiling and a malformed
+  // request into one word.
+  Verdict verdict = 8;
+
+  // WHICH Rego rule matched. Without this, "allowed" is unexplainable — and an
+  // unexplainable allow is not an audit record, it is a log line.
+  string matched_rule = 9;
+
+  // Why, when verdict is DENY or ESCALATE.
+  string reason = 10;
+
+  // What TRIGGERED this, as distinct from identity.chain (who AUTHORISED it).
+  // Populated when a reflex or another command caused this.
+  Causation causation = 11;
+
+  string idempotency_key = 12;
+
+  // Populated on phase == OUTCOME.
+  Effect effect = 13;
+
+  // Hash of the previous record in this WAL segment — tamper-evidence for a few
+  // lines of code (§5.4).
+  bytes prev_hash = 14;
+
+  // Set when this decision came from a reflex, so reflex behaviour is queryable
+  // independently of agent behaviour.
+  string reflex_name = 15;
+
+  // Set ONLY for a break-glass withdrawal (D106). Absent on every other row.
+  Revocation revocation = 16;
+
+  // Set ONLY for a `restore_target` (D133), the verb that lifts a withdrawal.
+  Restoration restoration = 17;
+
+  // WHICH STAGE refused this, when it was refused (D135). Unspecified on an
+  // allowed command.
+  RefusedBy refused_by = 18;
+
+  // The IDENTITY of the configuration that authorised this call (D149) — a
+  // hex SHA-256 over the compiled document, set on every row.
+  //
+  // §4.9a.2 promised this and named `Document.Version` as the mechanism. Version
+  // is a PROVENANCE label supplied by the source (`<file>@<mtime>` absent an
+  // etag), and provenance cannot answer the question an audit row asks: the same
+  // configuration deployed twice has two mtimes, and `touch -r` gives two
+  // different configurations one. An identity derived from CONTENT answers it in
+  // both directions.
+  //
+  // Version stays where it is useful — the boot log carries both, so a hash here
+  // joins back to a file there.
+  string config_identity = 19;
+
+  // The credential's SECURITY POSTURE at the moment of this call (D100, D119).
+  //
+  // Absent on rows that resolved no credential — a refusal before resolve, or a
+  // break-glass verb.
+  CredentialPosture credential_posture = 20;
+
+  // Trace is the W3C span context this decision belongs to (D216).
+  //
+  // **ON THE DECISION RATHER THAN INSIDE `Identity`, which is where a bare
+  // trace_id has lived since P0 and where it does not belong.** Identity
+  // answers WHO — caller proven, subject asserted, the chain between them. A
+  // trace answers WHICH CONVERSATION, which is request scope. The symptom of
+  // the old placement is in the tree: `reflex.go` copies `env.GetTraceId()`
+  // into a minted identity, plumbing a correlation value through an
+  // authorisation struct because that is where the field happened to live. Both
+  // sibling per-decision facts went here instead — `config_identity` (D149) and
+  // `credential_posture` (D119).
+  //
+  // `Identity.trace_id` is KEPT and mirrors `trace.trace_id`, deprecated in
+  // place: decision records outlive the code that wrote them by years, so a
+  // field already in somebody's archive must keep meaning what it meant.
+  Trace trace = 21;
+
+  // WHAT A `Describe` DISCLOSED, and the reason this row exists at all (D166).
+  //
+  // **D79 REFUSED TO AUDIT `Describe` AND THIS AMENDS THAT HALF.** Its argument
+  // was dilution — "a row per enumeration would dilute a log whose value is
+  // that every row is an action" — and the presence of this sub-message is what
+  // turns that into a FILTER rather than a loss, in the shape `Revocation` and
+  // `Restoration` already established for rows that are not ordinary commands.
+  // The deciding argument was not completeness but TAMPER-EVIDENCE: the only
+  // identity-carrying trace of enumeration was a log line, self-describe is
+  // DEBUG (D126), and CONTRACTS 28 says that log silently loses records on
+  // rotation. In a system whose default is to assume the environment is
+  // compromised, the reconnaissance trace is the first thing an attacker wants
+  // gone, and it was the one trace outside the hash chain.
+  Disclosure disclosure = 22;
+}
+
+// Trace is the W3C span context a decision or command belongs to (D216).
+//
+// **A BARE TRACE ID CANNOT PARENT A SPAN, which is the defect this replaces.**
+// W3C Trace Context is `00-<32 hex trace-id>-<16 hex span-id>-<flags>`; keeping
+// only the trace id means a span can be placed in the right TRACE and cannot be
+// made a CHILD of the caller's span. Every governed call would then appear as a
+// detached root beside the work that requested it — which is worse than no span,
+// because it looks like a trace and shows the wrong causal shape.
+message Trace {
+  // TraceId is the 16-byte W3C trace id, as 32 lowercase hex characters.
+  string trace_id = 1;
+
+  // ParentSpanId is the CALLER's span, so ours can be its child.
+  //
+  // Empty when the caller sent no `traceparent` — a legitimate case, and the
+  // reason this is not validated into existence: a deployment whose clients do
+  // not propagate trace context still gets correlation by trace id, and
+  // inventing a parent would claim a causal link nobody asserted.
+  string parent_span_id = 2;
+
+  // Sampled is the caller's sampling decision, from the `traceparent` flags.
+  //
+  // **PROPAGATED UNCHANGED, NEVER OVERRIDDEN (D216).** The tempting move is to
+  // force-keep any trace that produced a governed decision, since that is the
+  // most interesting trace there is. It is refused for the downstream half: a
+  // governance system that silently multiplies a customer's telemetry bill has
+  // made an operational decision that was not its to make. What Sekizui does
+  // instead is export its OWN span regardless — it already pays an fsync per
+  // decision, so a span is cheaper than what it does unconditionally already.
+  bool sampled = 3;
+
+  // SpanID is the span Sekizui minted for this command's outbound call.
+  //
+  // **IT LANDS WITH ITS WRITER, WHICH IS WHY THE NOTE THAT STOOD HERE SAID
+  // NOTHING WOULD (D216, D235).** There was no tracer to mint one, and a field
+  // nothing populates is the defect this schema keeps refusing — the same
+  // reason `RefusedBy` has no `REFUSED_BY_DRIVER` member. `internal/tracing`
+  // mints it now, in process and with no vendor SDK, W3C shaped: 8 random bytes
+  // as 16 lowercase hex characters.
+  //
+  // EMPTY WHEN NO OUTBOUND CALL WAS MADE, which is most refusals: a command
+  // stopped at a ceiling never reached a driver, so there is no span for it and
+  // an id here would name one that does not exist.
+  string span_id = 4;
+}
+
+// CredentialPosture is metadata ABOUT the credential used, never the credential
+// (D119).
+//
+// **THE MATERIAL IS NEVER IN HERE AND NEVER BECOMES A FIELD.** D119 is explicit,
+// and the reason is that a field name is the only documentation most readers
+// get: an earlier draft called `at_rest` "material", which read as though the
+// bytes might be present. Renamed for that reason alone.
+//
+// WHY THE RECORD AND NOT ONLY THE BOOT LOG. D104's report states the posture
+// once, at startup, to whoever is watching a terminal. An auditor asking "which
+// targets were reachable with an unrotatable credential last quarter" cannot
+// answer that from a log line nobody kept — they need it per action, which is
+// what §5.4 means by a record that stands alone. D118 is what makes the richer
+// record safe: decisions provably reach no bus consumer, so the reconnaissance
+// concern that argued for restraint does not apply.
+message CredentialPosture {
+  // Scheme is where material came from: "file", "env", "ambient", "gcp-sm".
+  //
+  // D100 originally specified this ALONE. D119 widened it, because a scheme
+  // tells a reviewer the mechanism and not the properties — `file://` spans a
+  // projected volume that rotates and a subPath mount that cannot.
+  string scheme = 1;
+
+  // Version is what the provider reported RESOLVING TO, not what configuration
+  // asked for (D130).
+  //
+  // The distinction is the whole point under a tracking reference: config says
+  // `versions/latest` forever while the live version moves, so this is what
+  // keeps "what was in use at 14:03" answerable from Sekizui's own records
+  // instead of by correlating two systems. Empty where the provider cannot say,
+  // which for a content-addressed source is the honest answer.
+  string version = 2;
+
+  // Rotation is "live", "on-change" or "NONE" (D104).
+  //
+  // A STRING, not an enum, following `kind`'s precedent (D138): the vocabulary
+  // grows with the providers, and a proto enum shadowing a Go one is a second
+  // vocabulary whose divergence is silent.
+  string rotation = 3;
+
+  // AuditedReads is whether the SOURCE records who read this credential and
+  // when — true for a secret manager, false for a mounted file.
+  bool audited_reads = 4;
+
+  // AtRest is WHERE THE BYTES LIVE: "secret-manager", "k8s-secret",
+  // "static-file", "platform". Never the bytes themselves.
+  //
+  // This is the field that answers the SOPS misconception without anybody
+  // needing to know it in advance — `helm-secrets` encrypts version control and
+  // leaves the material in a Kubernetes Secret, and this column says so (D103).
+  string at_rest = 5;
+}
+
+// Disclosure records what a capability enumeration revealed, and what shaped it.
+//
+// **DERIVED FROM THE RESPONSE THAT WAS ACTUALLY RETURNED**, never recomputed.
+// The whole value of the row is that it says what the caller was told, so a
+// record built by asking the catalog a second time could disagree with the
+// answer it is supposed to describe — `stampPosture`'s lesson (D119) and D138's,
+// applied to a disclosure instead of a refusal.
+message Disclosure {
+  // The principal whose capabilities were listed. Equal to the subject for the
+  // common case; DIFFERENT is the reconnaissance shape D79 wrote its refusal
+  // for, and it is the value an incident review greps for.
+  string principal_described = 1;
+
+  // How many capabilities were advertised. A count rather than the list: the
+  // list is reconstructible from the configuration of the day plus this row's
+  // `config_identity` (D149), and a row per capability would be the dilution
+  // D79 was right to refuse.
+  uint32 capabilities = 2;
+
+  // The shin lenses that shaped the answer, by name. IMPOSED applies whatever
+  // the consumer asks for; AVAILABLE is what it may select (§4.12).
+  //
+  // Once a consumer learns available data shapes by asking a connector,
+  // `Describe` IS a disclosure surface and shin governs disclosure — so a
+  // disclosure shaped by a lens with no record of which lens applied is
+  // "why does analytics never see user.email" moved from the payload to the
+  // catalog.
+  repeated string imposed_lenses = 3;
+  repeated string available_lenses = 4;
+
+  // The anzen rules that WITHHELD a capability, by name.
+  //
+  // `anzen.Guards.Forbids` has always returned the guard's name and the catalog
+  // discarded it with `_`, so a consumer saw an absence with no explanation and
+  // nothing recorded which rule shaped the advertisement (CONTRACTS 64). Not a
+  // missing implementation and not a missing caller: a value discarded between
+  // the two.
+  repeated string withheld_by = 5;
+}
+
+// RefusedBy names the stage of the enforcement path that refused a command.
+//
+// WHY A FIELD AND NOT JUST THE KIND. `fault.Kind` used to answer this by
+// implication — a revocation had its own kind — until that was collapsed into
+// KindDenied, which was right for the taxonomy (a revocation IS a denial, and
+// 18 kinds to say so is a poor trade) and left the record unable to tell a
+// policy denial from a credential revocation. This puts the distinction back at
+// the layer that should have carried it: the record a human reads, rather than
+// the enum a driver switches on.
+//
+// AN ENUM RATHER THAN A STRING, unlike `Revocation.severity` above, and the
+// difference is deliberate. That field mirrors anzen's vocabulary, which is
+// configuration and may grow without touching this schema. These are the stages
+// of the enforcement path — there is exactly one of it (D18) — so a new value
+// means the path itself changed, which should be a deliberate schema edit and
+// not a new string appearing in a warehouse.
+enum RefusedBy {
+  REFUSED_BY_UNSPECIFIED = 0;
+
+  // An anzen guard: a ceiling no grant can exceed (D71). Checked before policy,
+  // which is what makes it a ceiling rather than an opinion.
+  REFUSED_BY_ANZEN = 1;
+
+  // Policy: the principal had no grant covering this action and target.
+  REFUSED_BY_POLICY = 2;
+
+  // Residency: the target's region conflicts with the instance's (D29 item 2).
+  // Separate from policy because the remedy is completely different — a denial
+  // is a grant to review, a residency conflict is a deployment topology
+  // problem, and §7.1 item 2 treats it as a guarantee rather than a rule.
+  REFUSED_BY_RESIDENCY = 3;
+
+  // Break-glass: the target was withdrawn by `revoke_credential` or
+  // `quarantine_target` (§4.7.10, D106).
+  REFUSED_BY_WITHDRAWAL = 4;
+
+  // Credential: the credential could not be USED, and Sekizui decided not to
+  // proceed — D152's monotonic guard refusing a version that moved backwards
+  // being the case that forced this member (D201).
+  //
+  // **ADDED BECAUSE A REAL REFUSAL WAS BEING RECORDED AS RESIDENCY.** The
+  // resolve stage labelled every deliberate refusal `REFUSED_BY_RESIDENCY`,
+  // gating on `Deliberate()` as a stand-in for "is this residency" — so a
+  // credential downgrade, which is exactly what a disabled compromised version
+  // looks like, produced an audit row naming data residency as the reason. The
+  // control fired correctly and the record explained it wrongly, which is worse
+  // than either alone.
+  REFUSED_BY_CREDENTIAL = 5;
+
+  // Configuration: this deployment cannot perform the command as configured —
+  // a target whose base_url is not usable, a vetted spec that is absent (D201).
+  //
+  // A stage in the sense that matters here: the command was refused BEFORE the
+  // call, deliberately, by Sekizui rather than by a policy or a ceiling. The
+  // remedy is a config edit and a redeploy, which is why it must not read as a
+  // denial — an operator reviewing denials would find a grant to argue about
+  // and no grant is involved.
+  REFUSED_BY_CONFIGURATION = 6;
+
+  // Request: the CALLER malformed the command, and it was refused before any
+  // ceiling was consulted (D215).
+  //
+  // **THE FIRST STAGE, AND IT HAD NO MEMBER.** An oversized idempotency key or
+  // an unusable trace id is refused ahead of suspension, residency, anzen and
+  // policy — there is nothing to consult, because the request itself cannot be
+  // recorded safely. Without this member such a refusal shipped
+  // `REFUSED_BY_UNSPECIFIED`, which is the zero value meaning "nobody set
+  // this": exactly the defect D201 spent an entry on, where a credential
+  // downgrade was recorded as a residency refusal because the stage could not
+  // say otherwise.
+  //
+  // ADDED WITH ITS WRITER, which is the rule the note below states. It is set
+  // by `enforceOnce`'s request validation, and the value is deliberately
+  // distinct from CONFIGURATION: the remedy there is a config edit by an
+  // operator, and here it is a corrected request by the caller (D200's
+  // attribution axis, applied to a stage).
+  REFUSED_BY_REQUEST = 7;
+
+  // THE METER: §4.3.4's consuming controls — the shared rate budget (D143) and
+  // the circuit breaker (D141). The target has capacity or it does not, and
+  // neither answer is about the caller's grant.
+  //
+  // **A NEW VALUE BECAUSE THE PATH BECAME EXPLICIT, WHICH IS WHAT THE NOTE AT
+  // THE TOP OF THIS ENUM ASKS FOR.** These checks were inline in `enforceOnce`
+  // and half-inline in `Query`; extracting them as a shared stage (D253) is
+  // the path itself changing, so it is a deliberate schema edit rather than a
+  // string appearing in a warehouse.
+  //
+  // **IT REPLACES `REFUSED_BY_ANZEN`, WHICH `Query` WAS USING FOR AN OPEN
+  // BREAKER AND WHICH IS WRONG BY THIS ENUM'S OWN DEFINITION** — anzen is "a
+  // ceiling no grant can exceed, CHECKED BEFORE POLICY, which is what makes it
+  // a ceiling rather than an opinion", and the meter runs after policy, after
+  // resolve, immediately before the call. D201 is the precedent and the
+  // warning: a credential downgrade once recorded as a residency conflict,
+  // where "the control fired correctly and the record explained it wrongly,
+  // which is worse than either alone".
+  //
+  // ONE VALUE FOR BOTH CONTROLS, with `kind` telling them apart
+  // (`rate_limited` against `target_unavailable`). That is D138's split — a
+  // coarse stage for routing and a fine taxonomy word for the reason — and
+  // the two controls share a stage because they share a remedy: wait.
+  REFUSED_BY_METER = 8;
+
+  // NOTE: there is deliberately no REFUSED_BY_DRIVER yet.
+  //
+  // A driver-raised deliberate refusal — spec drift (D48) is the case that will
+  // exist — happens AFTER the intent record is written, so it is an
+  // OUTCOME-phase fact carried by `Effect`, and this field is written on the
+  // terminal row. Adding the value now would mean an enum member nothing sets,
+  // which is the defect CONTRACTS §4 keeps recording. It lands with P2's
+  // drivers, alongside a writer.
+}
+
+// Restoration is what a `sekizui.restore_target` lifted.
+//
+// A SEPARATE MESSAGE FROM Revocation rather than a severity on it, because the
+// fields that matter differ entirely: a withdrawal records what it STOPPED, a
+// restoration records what it re-enabled and what state it found. Reusing
+// `Revocation` would have left `cancelled_in_flight` and `stragglers` sitting
+// at zero on every restore row, which reads as "cancelled nothing" rather than
+// "not applicable".
+message Restoration {
+  // WHO OR WHAT lifted it: "operator:agent:oncall", or "anzen:<rule>".
+  string trigger = 1;
+
+  // WHICH severity was in force — "revoke_credential" or "quarantine_target".
+  //
+  // THE FIELD AN INCIDENT REVIEW ACTUALLY NEEDS. Lifting a quarantine is a
+  // health decision about a misbehaving target; lifting a REVOCATION is a
+  // security decision, and it asserts that a credential believed compromised is
+  // now safe to use again. Those must not look the same in the log months
+  // later, and only the row can say which happened.
+  string restored_from = 2;
+}
+
+// Revocation is what a `revoke_credential` or `quarantine_target` actually did.
+//
+// A SEPARATE MESSAGE RATHER THAN FIVE MORE Decision FIELDS, because these are
+// meaningful together and meaningless apart: `cancelled_in_flight = 0` says
+// nothing without the severity that produced it. Nesting also keeps the shape
+// of an ordinary row unchanged — a reader who never sees a revocation never
+// sees these fields, and a sink that does not understand them skips one
+// submessage rather than five stray columns.
+//
+// D106: "every revocation writes a decision record naming the credential, the
+// trigger, and the count of in-flight calls it cancelled. That last number is
+// the one an incident review asks for and nothing else can reconstruct." A
+// revocation that records only that it ran answers "did it fire" — the question
+// actually asked is "what was still running when it did".
+message Revocation {
+  // Which of the two severities ran (§4.7.10). Recorded as a string, matching
+  // the anzen verb exactly — "revoke_credential" or "quarantine_target" — so a
+  // query joins to the vocabulary rather than to an enum that has to be kept
+  // in step with it.
+  string severity = 1;
+
+  // WHO OR WHAT fired it: "operator:agent:oncall" for the governed verb,
+  // "anzen:<rule>" when a rule did. Distinct from identity, which says who
+  // authenticated: an anzen rule firing at 03:00 has no human behind it, and
+  // that fact is the point rather than a gap.
+  string trigger = 2;
+
+  // Field 3 was `credential_ref`, REMOVED before it shipped.
+  //
+  // It named the secret-manager path — "gcp-sm://projects/p/secrets/s/versions/7".
+  // The argument for it was that the first question of a credential incident is
+  // WHICH credential. The argument against won: `target_ref` already identifies
+  // the target, the credential behind it is derivable from the configuration of
+  // the day, and an audit row travels further than a log line — into a warehouse
+  // with its own access model. D112 keeps secret-manager paths out of
+  // circulation, and widening that for convenience is not a trade this project
+  // makes. Number left burned rather than reused.
+  reserved 3;
+  reserved "credential_ref";
+
+  // In-flight calls this withdrawal CANCELLED. Always zero for a quarantine,
+  // which lets them finish — the difference that makes the two severities two.
+  uint32 cancelled_in_flight = 4;
+
+  // In-flight calls deliberately left running. Always zero for a revocation.
+  uint32 left_running = 5;
+
+  // Pooled entries evicted, and those that were session-oriented (§4.7.4 class
+  // 3) and got a real Close rather than being dropped.
+  uint32 evicted = 6;
+  uint32 torn_down = 7;
+
+  // Entries whose drain did not finish inside the deadline — a driver that
+  // ignored its context. Their material is NOT yet zeroed; the wipe is deferred
+  // to whenever that call returns, never skipped (D127).
+  //
+  // RECORDED RATHER THAN RETRIED, because it is the one part of a revocation
+  // that did not complete, and an incident review that reads "revoked" without
+  // it would believe the material was gone when it was not.
+  uint32 stragglers = 8;
+
+  // WHICH ANZEN RULE decided this withdrawal — "credential-compromise" — or
+  // EMPTY when an operator improvised it (D134).
+  //
+  // EMPTY IS THE INTERESTING VALUE, and it is why this is a field rather than
+  // an inference. Anzen holds the reasoning: a rule declares the subject and
+  // the severity in daylight, reviewed by whoever is accountable, so an
+  // operator at 03:00 pulls a lever rather than choosing between "the target is
+  // misbehaving" and "the credential is compromised" under pressure. The raw
+  // verb stays available, because §4.7.10 rules out any path needing a
+  // redeploy and the unanticipated incident is what break-glass is for.
+  //
+  // So `decided_by = ""` marks a withdrawal nobody had planned. Querying for it
+  // yields the list of decisions that ought to exist and do not — the log
+  // surfacing a gap to patch, rather than the absence of a rule looking like
+  // health. Distinct from `Decision.matched_rule`, which names the GRANT that
+  // authorised the command, not the rule that decided it.
+  string decided_by = 9;
+}
+
+enum Phase {
+  PHASE_UNSPECIFIED = 0;
+  PHASE_INTENT = 1;   // written BEFORE the side effect
+  PHASE_OUTCOME = 2;  // written after
+}
+
+enum Verdict {
+  VERDICT_UNSPECIFIED = 0;
+  VERDICT_ALLOW = 1;
+  VERDICT_DENY = 2;
+  VERDICT_ESCALATE = 3;
+
+  // Shadow mode (§4.11.4 item 3) and dry_run. Evaluated fully, no side effect.
+  VERDICT_WOULD_HAVE_FIRED = 4;
+
+  // Blast-radius budget or causation depth cap tripped. Audited even for bus->bus
+  // reflexes that otherwise skip decision records, because a tripped guard is a
+  // governance event regardless of whether an external system was touched (D23).
+  VERDICT_BUDGET_EXCEEDED = 5;
+
+  // A DECLARED LOSS (D174, D275): a poll was interrupted, the source cannot
+  // re-read its window, and these events may never have reached a consumer.
+  // Written by Sekizui, never by a connector, and naming the events — so a
+  // gap somebody declared is distinguishable from one somebody is hiding (D77).
+  VERDICT_GAP = 6;
+}
+
+// Effect records what actually happened at the external system.
+message Effect {
+  bool success = 1;
+
+  // HTTP status or driver-specific code.
+  int32 status_code = 2;
+
+  int64 latency_ms = 3;
+
+  // Identifier created or affected, e.g. "PROJ-123". This is what makes the
+  // audit trail joinable to the target system's own records.
+  string external_ref = 4;
+
+  string error = 5;
+
+  // How many attempts, including retries.
+  uint32 attempts = 6;
+
+  // Freeform driver detail. Never contains credentials — Secret is a
+  // self-redacting type (§4.3.3), but this field is Struct, so drivers must not
+  // put secrets here. Enforced by review and by the redacting slog handler.
+  google.protobuf.Struct detail = 7;
+}

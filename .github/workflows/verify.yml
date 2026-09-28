@@ -1,0 +1,125 @@
+# Sekizui CI — manual, behind a confirmation, until push/pull_request are switched on.
+#
+# Run it from Actions -> Verify -> Run workflow, and type "yes". `make ci` locally runs the same
+# checks in the same order.
+#
+# Recorded explicitly because a workflow that looks active and is not is the "declared contract
+# that silently does nothing" shape (D68).
+name: Verify (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      i_understand_this_is_a_skeleton:
+        description: >-
+          Manual run of Sekizui's CI. Type "yes" to run it.
+        required: true
+        default: "no"
+  # Switch on when ready:
+  # push:
+  #   branches: [master]
+  # pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      # A SKELETON THAT ANNOUNCES ITSELF. Even a deliberate manual run stops
+      # here unless someone confirms — because a workflow that looks ready and
+      # is not is the "declared contract that silently does nothing" shape this
+      # project has now hit four times (D68). The guard makes the state explicit
+      # to whoever pressed the button, rather than only to whoever reads the
+      # comment at the top of the file.
+      - name: Confirm this is intentional
+        if: ${{ inputs.i_understand_this_is_a_skeleton != 'yes' }}
+        run: |
+          echo "::notice::Sekizui CI runs on request: re-run with the input set to yes."
+          echo
+          echo "It is manual until push/pull_request are switched on. Run 'make ci' locally"
+          echo "for the same checks in the same order."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          # The token is not needed after checkout; do not leave it in .git/config while the
+          # build and the tests run.
+          persist-credentials: false
+          # buf breaking compares against a baseline ref, which a shallow clone
+          # does not have. Without this the compatibility check silently has
+          # nothing to compare and passes — the failure mode D44 exists to stop.
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          # Read from go.mod rather than pinned here, so the version moves in one
+          # place. v6, not v5: v6 installs go.mod's `toolchain` line (a patched
+          # release) when present; v5 read only the `go` line and would build
+          # with 1.25.0 exactly — the floor, with none of its security patches
+          # (D343, GO-PRIMER §13).
+          go-version-file: go.mod
+          cache: false   # the Makefile confines caches to .gocache (D34)
+
+      - name: Point the Makefile at this toolchain
+        # Explicit, rather than relying on the Makefile's PATH fallback alone:
+        # the job says which Go it built with.
+        run: echo "GOROOT=$(go env GOROOT)" >> "$GITHUB_ENV"
+
+      - name: Install pinned tools
+        # Versions are pinned in the Makefile, never @latest — a floating codegen
+        # version means generated code that differs between machines, which
+        # defeats committing it (D34).
+        run: make tools
+
+      - name: Verify generated code is current
+        # D34 commits generated Go. A .proto edited without regenerating leaves
+        # the committed output stale, and every reviewer reads a diff that does
+        # not match the contract. Regenerate and fail if anything moved.
+        run: |
+          make generate
+          if ! git diff --quiet -- pkg/schema go.mod go.sum; then
+            echo "::error::generated code is stale — run 'make generate' and commit the result"
+            git diff --stat -- pkg/schema go.mod go.sum
+            exit 1
+          fi
+
+      - name: Lint
+        # buf lint + gofmt + go vet + golangci-lint, including gochecknoglobals,
+        # which is §6 item 4's "ban package-level mutable state via CI lint".
+        run: make lint
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        # -race is not optional: §6 makes the tenant-isolation guarantee a test
+        # artifact rather than a review artifact.
+        run: make test
+
+      - name: Wire compatibility
+        # D44. Skips with an explanation while the baseline has no protos, so a
+        # first run on a fresh repo does not fail confusingly.
+        run: make breaking
+
+      - name: Acceptance run
+        id: acceptance
+        # D74: a phase graduates on this. The audit log is the evidence, so it
+        # is uploaded rather than discarded with the runner.
+        run: make acceptance
+
+      - uses: actions/upload-artifact@v4
+        # Evidence exists only if acceptance ran. Uploading on its FAILURE is the
+        # point (the log says why); uploading when it never ran — the guard, a
+        # lint or test failure, a cancellation — would bury the real stop reason
+        # under a missing-artefact error (D342, amended). `error` stays: a run
+        # that reached acceptance and wrote nothing must not pass quietly (D68).
+        if: ${{ !cancelled() && steps.acceptance.outcome != 'skipped' }}
+        with:
+          name: acceptance-evidence
+          path: |
+            out/acceptance.jsonl
+            out/acceptance.prom
+            out/acceptance.md
+          if-no-files-found: error

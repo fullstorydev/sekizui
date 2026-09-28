@@ -1,0 +1,41 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/users/stream/{request_id}",
+  "operation_id": "GetCreateUserStreamStatus",
+  "title": "Get Stream Import Request Details",
+  "description": "Retrieve ID generated as a result of Create Stream Import request with the provided Request ID. If the request has not been completed then an empty ID string will be returned.",
+  "permission": "Architect",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/users/get-create-user-stream-status/",
+  "parameters": [
+    {
+      "name": "request_id",
+      "description": "The request ID for this asynchronous operation that can be used to query for status of this operation.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "example": "987654321",
+        "description": "The Fullstory assigned user ID"
+      }
+    },
+    "description": "Server response for creating a user",
+    "required": [
+      "id"
+    ],
+    "example": {
+      "id": "987654321"
+    }
+  }
+}

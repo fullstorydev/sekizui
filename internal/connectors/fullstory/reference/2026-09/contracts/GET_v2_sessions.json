@@ -1,0 +1,96 @@
+{
+  "tier": "v2",
+  "method": "GET",
+  "path": "/v2/sessions",
+  "operation_id": "list-sessions",
+  "title": "List Sessions",
+  "description": "Returns up to `limit` most recent session replay URLs for a user, queried by `uid` and/or `email`. If both `uid` and `email` are provided, this endpoint queries on them separately and returns the union of the records found. It is recommended to use either `uid` or `email`, but not both. Alternatively, provide `session_uid` (the customer-defined session identifier set via the Fullstory SDK or server API) to fetch a single session directly. `session_uid` is mutually exclusive with `uid` and `email`. Pagination is not currently supported; this endpoint always returns a single page. ",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/sessions/list-sessions/",
+  "parameters": [
+    {
+      "name": "uid",
+      "description": "The application-specific ID you have assigned to the user (the value passed to `FS('setIdentity')`). Required if neither `email` nor `session_uid` is provided.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "email",
+      "description": "The email address associated with the user. Required if neither `uid` nor `session_uid` is provided.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "limit",
+      "description": "The maximum number of sessions to return. Defaults to 20 when unset.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "format": "int64"
+      }
+    },
+    {
+      "name": "session_uid",
+      "description": "A customer-defined session identifier (the value passed as `uid` when starting a session via the Fullstory SDK or server API). Returns a single matching session. Mutually exclusive with `uid` and `email`.",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "1234567890:0987654321",
+              "description": "The canonical Fullstory session identifier, formatted as `\u003cuser_id\u003e:\u003csession_id\u003e`."
+            },
+            "app_url": {
+              "type": "string",
+              "example": "https://app.fullstory.com/ui/orgid/session/1234567890:0987654321",
+              "description": "A link to the Fullstory app session replay for this session."
+            },
+            "created_time": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-01-15T01:30:15Z",
+              "description": "The time at which the session was created."
+            }
+          },
+          "description": "Metadata describing a single session."
+        },
+        "description": "The list of sessions that match the input filter criteria, ordered from most recent to oldest."
+      }
+    },
+    "description": "Server response containing session replay metadata for the matching sessions.",
+    "required": [
+      "results"
+    ],
+    "example": {
+      "results": [
+        {
+          "id": "1234567890:0987654321",
+          "app_url": "https://app.fullstory.com/ui/orgid/session/1234567890:0987654321",
+          "created_time": "2017-01-15T01:30:15Z"
+        }
+      ]
+    }
+  }
+}

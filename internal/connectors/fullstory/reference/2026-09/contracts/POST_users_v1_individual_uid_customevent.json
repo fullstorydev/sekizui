@@ -1,0 +1,84 @@
+{
+  "tier": "v1",
+  "method": "POST",
+  "path": "/users/v1/individual/{uid}/customevent",
+  "operation_id": "set-user-events",
+  "title": "Set User Events",
+  "description": "Capture custom events for users who have previously been identified in the browser via the [FS.identify](/browser/identification/identify-users) Browser API function. Use this API to track events from other systems that do not originate directly from the browser or mobile device. ### Anonymous users This API will only work for previously-identified users for whom the FS.identify or FS.setUserVars Browser API was called. Anonymous users lack the required `uid` necessary for this API to function. You may want to associate server events with a Fullstory session. This is useful if the event occurred as a result of the user’s online activity and you want the user session to reflect both online and server activity. Example: capturing payment gateway errors during checkout. ### Session Related Event There are three ways to associate an event to a user session. The session-related fields are all optional. You may include only **one** of these fields for each event: `session_url`, `use_recent_session`, and `device_session`\nIf none of the fields above are provided, or if the event timestamp falls outside the 30-minute recent activity window, the event still be ingested, but will not be associated with an existing user session. The event can be used in other analyses such as Metrics, Funnels, Journeys, and Conversions.",
+  "permission": "Standard",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/v1/users/set-user-events/",
+  "parameters": [
+    {
+      "name": "uid",
+      "description": "The application-specific ID you've assigned to this user.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "request_body": {
+    "type": "object",
+    "properties": {
+      "event": {
+        "type": "object",
+        "example": {
+          "event_name": "Support Ticket",
+          "event_data": {
+            "id_int": 424242,
+            "priority_str": "Normal",
+            "source_str": "Email",
+            "title_str": "Account locked out"
+          },
+          "timestamp": "2022-03-15T14:23:23Z",
+          "use_recent_session": true
+        },
+        "properties": {
+          "event_name": {
+            "type": "string",
+            "description": "The unique name of the custom event."
+          },
+          "event_data": {
+            "type": "object",
+            "description": "A set of key-value pairs listing the event properties and values. Property names must follow the custom field format documented [here](https://help.fullstory.com/hc/en-us/articles/4446290296599-Setting-custom-API-properties)."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time the event occurred, represented in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format. If not provided, the current Fullstory server time will be used."
+          },
+          "session_url": {
+            "type": "string",
+            "description": "The Fullstory session playback URL to which the event should be attached, as returned by the FS.getCurrentSessionURL() client API."
+          },
+          "device_session": {
+            "type": "string",
+            "description": "The device session identifier, as returned by the FS.getCurrentSession() client API."
+          },
+          "use_recent_session": {
+            "type": "boolean",
+            "description": "Set to true if the custom event should be attached to the user\u2019s most recent session. The most recent session must have had activity within the past 30 minutes."
+          },
+          "user_initiated": {
+            "type": "boolean"
+          },
+          "integration": {
+            "type": "string",
+            "description": "Optional explicit integration field for integrations to mark their custom events."
+          }
+        },
+        "required": [
+          "event_name"
+        ]
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "properties": {}
+  }
+}

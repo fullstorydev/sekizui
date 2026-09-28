@@ -1,0 +1,27 @@
+{
+  "tier": "anywhere",
+  "method": "DELETE",
+  "path": "/webhooks/v1/endpoints/{id}",
+  "operation_id": "DeleteEndpoint",
+  "title": "Delete Endpoint",
+  "description": "Deletes the endpoint corresponding to the ID provided",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/anywhere/v1/webhooks/delete-endpoint/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "ID of the endpoint, as returned by the [Create Endpoint](../create-endpoint) or [List Endpoints](../list-endpoints) APIs.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "properties": {}
+  }
+}

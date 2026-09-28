@@ -1,0 +1,28 @@
+{
+  "tier": "beta",
+  "method": "DELETE",
+  "path": "/v2beta/privacy/elements/{id}",
+  "operation_id": "DeleteElementBlockRule",
+  "title": "Delete Element Block Rule",
+  "description": "Deletes an element block rule. Only custom rules can be deleted. Built-in rules cannot be deleted.",
+  "permission": "Admin",
+  "servers": [
+    "https://api.fullstory.com"
+  ],
+  "docs": "https://developer.fullstory.com/server/beta/elementblockrules/delete-element-block-rule/",
+  "parameters": [
+    {
+      "name": "id",
+      "description": "The unique identifier of the element block rule to delete.",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+  "response": {
+    "type": "object",
+    "example": {}
+  }
+}
